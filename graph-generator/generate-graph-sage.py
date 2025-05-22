@@ -7,6 +7,9 @@ train_set_size = 50000
 test_set_size = 10000
 
 # this function is not suitable: the graphs have self intersections
+# some links for random planar graphs:
+# https://github.com/tinyplasticgreyknight/random-planar-graph/blob/master/GenerateGraph.py
+# https://github.com/briandconnelly/seeds/blob/master/seeds/plugins/topology/CartesianTopology.py#L115
 
 def GenerateSamples(destination: str, samples: int,
                     vertices: tuple[int, int], edges: tuple[int, int]):
