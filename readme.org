@@ -1,2 +1,4 @@
 * Articles
 ** https://arxiv.org/pdf/1905.10990
+* Additional Ideas:
+** Use the yolo idea but output the vertex/edge "coordinates" instead of object coordinates
