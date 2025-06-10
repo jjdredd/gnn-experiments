@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 # from torchvision.transforms import ToTensor
 from torchvision.io import decode_image
 
-# 
+# Support only square images for now
 
 class LineGraphDataset(Dataset):
     def __init__(self, data_directory : str):
@@ -24,7 +24,7 @@ class LineGraphDataset(Dataset):
         for i in range(len(lines)):
             value = re.split(r'\t', lines[i])
             self.graph_edges.append(
-                ((int(value[0]), int(value[1])), (int(value[2]), int(value[3]))))
+                ((int(value[1]), int(value[2])), (int(value[3]), int(value[4]))))
 
 
     def __len__(self):
@@ -38,7 +38,7 @@ class LineGraphDataset(Dataset):
                                               self.graph_edges[idx][1])
         graph[edge_index_1] = 1.0
         edge_index_2 = self.GridToOutputIndex(self.graph_edges[idx][1],
-                                                          self.graph_edges[idx][0])
+                                              self.graph_edges[idx][0])
         graph[edge_index_2] = 1.0
         # we don't need vertex features, for now
         return { 'image': image[0].to(torch.float32),
@@ -51,3 +51,13 @@ class LineGraphDataset(Dataset):
         start_index = self.GridToIndex(start[0], start[1])
         end_index = self.GridToIndex(end[0], end[1])
         return start_index * self.latent_size + end_index
+
+    def GetImageShape(self):
+        return self.image_shape
+
+    def GetLatentSize(self):
+        return self.latent_size
+
+    @staticmethod
+    def LatentToImageIndices(image_shape, latent_index):
+        return (latent_index // int(image_shape[0]), latent_index % int(image_shape[0]))

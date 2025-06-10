@@ -28,6 +28,6 @@ class CnnGraphEncoder(nn.Module):
 
     def forward(self, x):
         x = self.conv_layer_1(x.unsqueeze(0))
-        x = torch.flatten(x, end_dim=1)
-        return self.sigmoid(torch.einsum('ijk->ij,k', x, x))
+        x = torch.flatten(x, start_dim=1, end_dim=2)
+        return self.sigmoid(torch.einsum('ij,ik->jk', x, x))
 
