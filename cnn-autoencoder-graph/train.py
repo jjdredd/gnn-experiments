@@ -33,12 +33,9 @@ def Train(dataloader, model, loss_fn, optimizer):
     for i, data in enumerate(dataloader):
         image = data['image'].to(device)
         graph = data['graph'].to(device)
-        print(image.shape)
-        print(graph.shape)
 
         # Compute prediction error
         pred = model(image)
-        print(pred.shape)
         # reshape here because input has an additional dimension: channel
         loss = loss_fn(pred, graph)
 
@@ -51,8 +48,8 @@ def Train(dataloader, model, loss_fn, optimizer):
             loss, current = loss.item(), i + 1
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
-dataset = dl.LineGraphDataset('./train-4k')
-optimizer = torch.optim.Adam(GraphModel.parameters(), lr=1e-3, weight_decay=1e-5)
+dataset = dl.LineGraphDataset('./train-32')
+optimizer = torch.optim.Adam(GraphModel.parameters(), lr=1e-5, weight_decay=1e-5)
 
 for data in DataLoader(dataset, batch_size=10):
     X = data['image']
@@ -66,7 +63,7 @@ epochs = 100
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     t_start = perf_counter_ns()
-    Train(DataLoader(dataset, batch_size=10), GraphModel, AdjacencyCrossEntropy, optimizer)
+    Train(DataLoader(dataset, batch_size=16), GraphModel, AdjacencyCrossEntropy, optimizer)
     t_stop = perf_counter_ns()
     print(f"Epoch {t+1} training finished in {t_stop - t_start} ns")
 print("Done!")

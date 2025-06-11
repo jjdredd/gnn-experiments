@@ -9,7 +9,7 @@ if len(sys.argv) < 2:
     print("supply a directory path")
     exit(0)
 
-ImageSize = 10
+ImageSize = 32
 MinLineDim = 1
 NumSamples = 10000
 
