@@ -41,7 +41,7 @@ class LineGraphDataset(Dataset):
                                               self.graph_edges[idx][0])
         graph[edge_index_2] = 1.0
         # we don't need vertex features, for now
-        return { 'image': image[0].to(torch.float32),
+        return { 'image': image[0].to(torch.float32).unsqueeze(0),
                  'graph' : graph }
 
     def GridToIndex(self, i: int, j: int) -> int:

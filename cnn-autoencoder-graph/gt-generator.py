@@ -11,7 +11,7 @@ if len(sys.argv) < 2:
 
 ImageSize = 10
 MinLineDim = 1
-NumSamples = 100
+NumSamples = 10000
 
 OutputDirectory = sys.argv[1]
 
