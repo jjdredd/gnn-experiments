@@ -9,6 +9,7 @@ from time import perf_counter_ns
 
 import model
 import data_loader as dl
+import test
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
@@ -19,7 +20,8 @@ else:
 print(f"Using {device} device")
 
 
-GraphModel = model.CnnGraphEncoder().to(device)
+# GraphModel = model.CnnGraphEncoder().to(device)
+GraphModel = model.CnnGraphEncoderDeconv().to(device)
 print(GraphModel)
 
 StdCrossEntropyLoss = nn.CrossEntropyLoss()
@@ -49,7 +51,7 @@ def Train(dataloader, model, loss_fn, optimizer):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 dataset = dl.LineGraphDataset('./train-32')
-optimizer = torch.optim.Adam(GraphModel.parameters(), lr=1e-5, weight_decay=1e-5)
+optimizer = torch.optim.Adam(GraphModel.parameters(), lr=1e-4, weight_decay=1e-6)
 
 for data in DataLoader(dataset, batch_size=10):
     X = data['image']
@@ -58,12 +60,14 @@ for data in DataLoader(dataset, batch_size=10):
     print(f"Shape of y: {y.shape} {y.dtype}")
     break
 
+dataset_test = dl.LineGraphDataset('./test-ds')
 
 epochs = 100
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     t_start = perf_counter_ns()
-    Train(DataLoader(dataset, batch_size=16), GraphModel, AdjacencyCrossEntropy, optimizer)
+    Train(DataLoader(dataset, batch_size=32), GraphModel, AdjacencyCrossEntropy, optimizer)
+    test.Test(DataLoader(dataset_test, batch_size=32), GraphModel, AdjacencyCrossEntropy)
     t_stop = perf_counter_ns()
     print(f"Epoch {t+1} training finished in {t_stop - t_start} ns")
 print("Done!")

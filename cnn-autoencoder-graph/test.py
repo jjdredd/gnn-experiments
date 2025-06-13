@@ -14,8 +14,8 @@ import data_loader as dl
 def TensorToEdges(adjacency_tensor, image_shape):
     edge_thres = 0.75
     edges = []
-    for i in range adjacency_tensor.shape[0]:
-        for j in range adjacency_tensor.shape[1]:
+    for i in range(adjacency_tensor.shape[0]):
+        for j in range(adjacency_tensor.shape[1]):
             if adjacency_tensor[i, j] < edge_thres:
                 continue
             start_coordinates = LineGraphDataset.LatentToImageIndices(i)
@@ -63,4 +63,22 @@ def test():
     with torch.no_grad():
         for data in dataset:
             image = data['image']
+
+
+def Test(dataloader, model, loss_fn):
+    size = len(dataloader.dataset)
+    num_batches = len(dataloader)
+    model.eval()
+    test_loss, correct = 0, 0
+    with torch.no_grad():
+        for data in dataloader:
+            image = data['image'].to(device)
+            graph = data['graph'].to(device)
+
+            # Compute prediction error
+            pred = model(image)
+            # reshape here because input has an additional dimension: channel
+            test_loss += loss_fn(pred, graph).item()
+    test_loss /= num_batches
+    print(f"Test Error: \n Avg loss: {test_loss:>8f} \n")
 
