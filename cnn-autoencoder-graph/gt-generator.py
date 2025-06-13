@@ -9,9 +9,9 @@ if len(sys.argv) < 2:
     print("supply a directory path")
     exit(0)
 
-ImageSize = 32
+ImageSize = 16
 MinLineDim = 1
-NumSamples = 1000
+NumSamples = 5000
 
 OutputDirectory = sys.argv[1]
 

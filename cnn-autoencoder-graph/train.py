@@ -51,7 +51,7 @@ def Train(dataloader, model, loss_fn, optimizer):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
 dataset = dl.LineGraphDataset('./train-32')
-optimizer = torch.optim.Adam(GraphModel.parameters(), lr=1e-4, weight_decay=1e-6)
+optimizer = torch.optim.Adam(GraphModel.parameters(), lr=1e-4, weight_decay=1e-5)
 
 for data in DataLoader(dataset, batch_size=10):
     X = data['image']
@@ -62,12 +62,15 @@ for data in DataLoader(dataset, batch_size=10):
 
 dataset_test = dl.LineGraphDataset('./test-ds')
 
-epochs = 100
+epochs = 700
+batch_size = 64
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     t_start = perf_counter_ns()
-    Train(DataLoader(dataset, batch_size=32), GraphModel, AdjacencyCrossEntropy, optimizer)
-    test.Test(DataLoader(dataset_test, batch_size=32), GraphModel, AdjacencyCrossEntropy)
+    Train(DataLoader(dataset, batch_size=batch_size), GraphModel, AdjacencyCrossEntropy, optimizer)
+    test.Test(DataLoader(dataset_test, batch_size=batch_size), GraphModel, AdjacencyCrossEntropy)
     t_stop = perf_counter_ns()
     print(f"Epoch {t+1} training finished in {t_stop - t_start} ns")
 print("Done!")
+
+torch.save(GraphModel.state_dict(), 'GraphModel.2.weights.saved')

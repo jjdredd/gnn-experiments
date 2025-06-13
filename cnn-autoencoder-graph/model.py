@@ -46,39 +46,35 @@ class CnnGraphEncoderDeconv(nn.Module):
         self.sigmoid = nn.Sigmoid()
         # input 32x32,
         self.conv = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=32,
+            nn.Conv2d(in_channels=1, out_channels=8,
                       kernel_size=(3, 3),
                       stride=1, padding=0, bias=True),
             # nn.Softsign(),
             nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=32,
-                      kernel_size=(3, 3),
-                      stride=1, padding=1, bias=True),
-            nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)), # AvgPool2d
             #  output 14x14 ((32 - 2)/2)
-            nn.Conv2d(in_channels=32, out_channels=64,
+            nn.Conv2d(in_channels=8, out_channels=16,
                       kernel_size=(3, 3),
                       stride=1, padding=0, bias=True),
             nn.ReLU(),
-            nn.Conv2d(in_channels=64, out_channels=64,
+            nn.Conv2d(in_channels=16, out_channels=32,
                       kernel_size=(3, 3),
                       stride=1, padding=1, bias=True),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)))
         # 6x6    (14 - 2) /2
         self.transposed_conv = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=64, out_channels=32,
+            nn.ConvTranspose2d(in_channels=32, out_channels=16,
                                kernel_size=(5, 5),
                                stride=2, padding=1, bias=True),
             nn.ReLU(),
             # (6 - 1) * 2 + (5 - 1) + 1 - 2 = 13
-            nn.ConvTranspose2d(in_channels=32, out_channels=16,
+            nn.ConvTranspose2d(in_channels=16, out_channels=8,
                                kernel_size=(7, 7),
                                stride=2, padding=1, bias=True),
             nn.ReLU(),
             # (13 - 1) * 2 + (7 - 1) + 1 - 2 = 29
-            nn.ConvTranspose2d(in_channels=16, out_channels=8,
+            nn.ConvTranspose2d(in_channels=8, out_channels=4,
                                kernel_size=(4, 4),
                                stride=1, bias=True),
             nn.ReLU(),
