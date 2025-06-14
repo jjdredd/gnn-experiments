@@ -33,24 +33,17 @@ class LineGraphDataset(Dataset):
     def __getitem__(self, idx):
         img_path = os.path.join(self.directory, f'line_{idx}.png')
         image = decode_image(img_path)
-        graph = torch.zeros(self.latent_size ** 2)
-        edge_index_1 = self.GridToOutputIndex(self.graph_edges[idx][0],
-                                              self.graph_edges[idx][1])
-        graph[edge_index_1] = 1.0
-        edge_index_2 = self.GridToOutputIndex(self.graph_edges[idx][1],
-                                              self.graph_edges[idx][0])
-        graph[edge_index_2] = 1.0
+        graph = torch.zeros(self.latent_size, self.latent_size)
+        i = self.GridToIndex(self.graph_edges[idx][0])
+        j = self.GridToIndex(self.graph_edges[idx][1])
+        graph[i, j] = 1.0
+        graph[j, i] = 1.0
         # we don't need vertex features, for now
         return { 'image': image[0].to(torch.float32).unsqueeze(0),
                  'graph' : graph }
 
-    def GridToIndex(self, i: int, j: int) -> int:
-        return self.image_shape[0] * i + j
-
-    def GridToOutputIndex(self, start: tuple[int, int], end: tuple[int, int]) -> int:
-        start_index = self.GridToIndex(start[0], start[1])
-        end_index = self.GridToIndex(end[0], end[1])
-        return start_index * self.latent_size + end_index
+    def GridToIndex(self, c: tuple[int, int]) -> int:
+        return self.image_shape[0] * c[0] - c[1] + self.image_shape[1] - 1
 
     def GetImageShape(self):
         return self.image_shape

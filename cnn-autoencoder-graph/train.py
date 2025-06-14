@@ -3,8 +3,9 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from torchvision.transforms import ToTensor
+from torchvision.transforms import ToTensor, GaussianBlur
 from torchvision.io import decode_image
+from torchvision.utils import save_image
 from time import perf_counter_ns
 
 import model
@@ -21,23 +22,32 @@ print(f"Using {device} device")
 
 
 # GraphModel = model.CnnGraphEncoder().to(device)
-GraphModel = model.CnnGraphEncoderDeconv().to(device)
+GraphModel = model.CnnGraphEncoder().to(device)
 print(GraphModel)
 
 StdCrossEntropyLoss = nn.CrossEntropyLoss()
 def AdjacencyCrossEntropy(prediction, ground_truth):
-    return StdCrossEntropyLoss(prediction.flatten(start_dim=1), ground_truth)
+    return StdCrossEntropyLoss(prediction, ground_truth)
 
 # Support only square images for now
-def Train(dataloader, model, loss_fn, optimizer):
+def Train(dataloader, model, loss_fn, optimizer, epoch):
+    sigma = 40 / (epoch + 1)
+    blur = GaussianBlur(kernel_size=(9, 9), sigma=(sigma, sigma))
     size = len(dataloader)
     model.train()
     for i, data in enumerate(dataloader):
         image = data['image'].to(device)
         graph = data['graph'].to(device)
 
+        if epoch < 40:
+            graph = blur(graph)
+
         # Compute prediction error
         pred = model(image)
+        save_image(image[0], 'input.png')
+        save_image(pred[0], 'pred.png')
+        # print('pred.shape', pred.shape)
+        # print('graph.shape', graph.shape)
         # reshape here because input has an additional dimension: channel
         loss = loss_fn(pred, graph)
 
@@ -49,6 +59,10 @@ def Train(dataloader, model, loss_fn, optimizer):
         if i % 100 == 0:
             loss, current = loss.item(), i + 1
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+            # save_image(image[0], f'pics/input_{i}.png')
+            save_image(torch.cat((pred[0], graph[0]), 1), f'pics/pred_gt_{i}.png')
+            # save_image(, f'pics/gt_{i}.png')
+
 
 dataset = dl.LineGraphDataset('./train-32')
 optimizer = torch.optim.Adam(GraphModel.parameters(), lr=1e-4, weight_decay=1e-5)
@@ -67,7 +81,7 @@ batch_size = 64
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     t_start = perf_counter_ns()
-    Train(DataLoader(dataset, batch_size=batch_size), GraphModel, AdjacencyCrossEntropy, optimizer)
+    Train(DataLoader(dataset, batch_size=batch_size), GraphModel, AdjacencyCrossEntropy, optimizer, t)
     test.Test(DataLoader(dataset_test, batch_size=batch_size), GraphModel, AdjacencyCrossEntropy)
     t_stop = perf_counter_ns()
     print(f"Epoch {t+1} training finished in {t_stop - t_start} ns")
