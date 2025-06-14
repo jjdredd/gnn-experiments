@@ -22,16 +22,17 @@ print(f"Using {device} device")
 
 
 # GraphModel = model.CnnGraphEncoder().to(device)
-GraphModel = model.CnnGraphEncoder().to(device)
+GraphModel = model.CnnGraphEncoderDeconvLong().to(device)
 print(GraphModel)
 
+upsampling = nn.Upsample(scale_factor=3, mode='nearest')
 StdCrossEntropyLoss = nn.CrossEntropyLoss()
 def AdjacencyCrossEntropy(prediction, ground_truth):
     return StdCrossEntropyLoss(prediction, ground_truth)
 
 # Support only square images for now
 def Train(dataloader, model, loss_fn, optimizer, epoch):
-    sigma = 40 / (epoch + 1)
+    sigma = 8 / (epoch + 1)
     blur = GaussianBlur(kernel_size=(9, 9), sigma=(sigma, sigma))
     size = len(dataloader)
     model.train()
@@ -39,7 +40,7 @@ def Train(dataloader, model, loss_fn, optimizer, epoch):
         image = data['image'].to(device)
         graph = data['graph'].to(device)
 
-        if epoch < 40:
+        if epoch < 20:
             graph = blur(graph)
 
         # Compute prediction error
