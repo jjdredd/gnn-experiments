@@ -28,7 +28,7 @@ print(GraphModel)
 upsampling = nn.Upsample(scale_factor=3, mode='nearest')
 StdCrossEntropyLoss = nn.CrossEntropyLoss()
 def AdjacencyCrossEntropy(prediction, ground_truth):
-    return StdCrossEntropyLoss(prediction, ground_truth)
+    return StdCrossEntropyLoss(ground_truth, prediction)
 
 # Support only square images for now
 def Train(dataloader, model, loss_fn, optimizer, epoch):
@@ -40,8 +40,8 @@ def Train(dataloader, model, loss_fn, optimizer, epoch):
         image = data['image'].to(device)
         graph = data['graph'].to(device)
 
-        if epoch < 20:
-            graph = blur(graph)
+        # if epoch < 20:
+        #     graph = blur(graph)
 
         # Compute prediction error
         pred = model(image)
