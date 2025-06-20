@@ -22,7 +22,7 @@ print(f"Using {device} device")
 
 
 # GraphModel = model.CnnGraphEncoder().to(device)
-GraphModel = model.CnnGraphEncoderNoEinsumLong().to(device)
+GraphModel = model.CnnGraphEncoderNesNtcNp().to(device)
 print(GraphModel)
 
 upsampling = nn.Upsample(scale_factor=3, mode='nearest')
@@ -89,3 +89,5 @@ for t in range(epochs):
 print("Done!")
 
 torch.save(GraphModel.state_dict(), 'GraphModel.2.weights.saved')
+
+# Make regularization: penalize the number of vertices/edges
