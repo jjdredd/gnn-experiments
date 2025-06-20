@@ -22,13 +22,13 @@ print(f"Using {device} device")
 
 
 # GraphModel = model.CnnGraphEncoder().to(device)
-GraphModel = model.CnnGraphEncoderDeconvLong().to(device)
+GraphModel = model.CnnGraphEncoderNoEinsum().to(device)
 print(GraphModel)
 
 upsampling = nn.Upsample(scale_factor=3, mode='nearest')
 StdCrossEntropyLoss = nn.CrossEntropyLoss()
 def AdjacencyCrossEntropy(prediction, ground_truth):
-    return StdCrossEntropyLoss(ground_truth, prediction)
+    return StdCrossEntropyLoss(prediction, ground_truth)
 
 # Support only square images for now
 def Train(dataloader, model, loss_fn, optimizer, epoch):
