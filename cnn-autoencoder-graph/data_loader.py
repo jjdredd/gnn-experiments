@@ -38,8 +38,8 @@ class LineGraphDataset(Dataset):
         j = self.GridToIndex(self.graph_edges[idx][1])
         graph[i, j] = 1.0
         graph[j, i] = 1.0
-        graph[i, i] = 1.0
-        graph[j, j] = 1.0
+        # graph[i, i] = 1.0
+        # graph[j, j] = 1.0
         # we don't need vertex features, for now
         return { 'image': image[0].to(torch.float32).unsqueeze(0),
                  'graph' : graph }

@@ -40,8 +40,8 @@ def Train(dataloader, model, loss_fn, optimizer, epoch):
         image = data['image'].to(device)
         graph = data['graph'].to(device)
 
-        # if epoch < 20:
-        #     graph = blur(graph)
+        if epoch < 20:
+            graph = blur(graph)
 
         # Compute prediction error
         pred = model(image)
