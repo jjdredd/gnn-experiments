@@ -22,7 +22,7 @@ print(f"Using {device} device")
 
 
 # GraphModel = model.CnnGraphEncoder().to(device)
-GraphModel = model.CnnGraphEncoderNesNtcNp().to(device)
+GraphModel = model.CnnGraphEncoder_Ntc_Wes().to(device)
 print(GraphModel)
 
 upsampling = nn.Upsample(scale_factor=3, mode='nearest')
