@@ -33,12 +33,12 @@ def GenerateSamples(destination: str, samples: int,
         G = GeneratePlanarGraph(v, e)
         e = v = 0
 
-        plt.figure(figsize=(5, 5))
+        plt.figure(figsize=(1, 1), dpi=64)
         nx.draw_planar(G, #pos=nx.planar_layout(G),
                 with_labels=False,
                 node_color='lightblue',
                 node_size=0,
-                width=2,
+                width=1,
                 font_weight='bold',
                 edge_color='black'
                 )
@@ -51,4 +51,4 @@ def GenerateSamples(destination: str, samples: int,
 
 
 if __name__ == '__main__':
-    GenerateSamples('/tmp/graph_samples', 20, (8, 14), (2, 5))
+    GenerateSamples('/tmp/graph_samples', 20, (2, 6), (1, 4))

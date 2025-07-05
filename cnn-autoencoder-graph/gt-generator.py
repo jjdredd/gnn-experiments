@@ -9,17 +9,23 @@ if len(sys.argv) < 2:
     print("supply a directory path")
     exit(0)
 
-ImageSize = 16
-MinLineDim = 1
-NumSamples = 40000
+ImageSize = 64
+MinLineDim = 3
+NumSamples = 80000
+
+def PointInLimits(x, y) -> bool:
+    return (x > 1 and x < ImageSize - 2 and y > 1 and y < ImageSize - 2)
 
 OutputDirectory = sys.argv[1]
 
 txt_file = open(f'{OutputDirectory}/graphs.txt', 'w+')
 
+
 for i in range(NumSamples):
     x_1 = x_2 = y_1 = y_2 = 0
-    while abs(x_1 - x_2) < MinLineDim and abs(y_1 - y_2) < MinLineDim:
+    while (abs(x_1 - x_2) < MinLineDim
+           and abs(y_1 - y_2) < MinLineDim
+           and not (PointInLimits(x_1, y_1) or PointInLimits(x_2, y_2))):
         x_1 = random.randint(0, ImageSize - 1)
         x_2 = random.randint(0, ImageSize - 1)
         y_1 = random.randint(0, ImageSize - 1)

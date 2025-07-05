@@ -26,7 +26,7 @@ GraphModel = model.CnnGraphEncoder_Ntc_Wes().to(device)
 print(GraphModel)
 
 upsampling = nn.Upsample(scale_factor=3, mode='nearest')
-StdCrossEntropyLoss = nn.CrossEntropyLoss()
+StdCrossEntropyLoss = nn.CrossEntropyLoss(reduction='sum')
 def AdjacencyCrossEntropy(prediction, ground_truth):
     return StdCrossEntropyLoss(prediction, ground_truth)
 
@@ -45,8 +45,6 @@ def Train(dataloader, model, loss_fn, optimizer, epoch):
 
         # Compute prediction error
         pred = model(image)
-        save_image(image[0], 'input.png')
-        save_image(pred[0], 'pred.png')
         # print('pred.shape', pred.shape)
         # print('graph.shape', graph.shape)
         # reshape here because input has an additional dimension: channel
@@ -65,7 +63,7 @@ def Train(dataloader, model, loss_fn, optimizer, epoch):
             # save_image(, f'pics/gt_{i}.png')
 
 
-dataset = dl.LineGraphDataset('./train-32')
+dataset = dl.LineGraphDataset('./train-64')
 optimizer = torch.optim.Adam(GraphModel.parameters(), lr=1e-4, weight_decay=1e-5)
 
 for data in DataLoader(dataset, batch_size=10):
@@ -75,10 +73,10 @@ for data in DataLoader(dataset, batch_size=10):
     print(f"Shape of y: {y.shape} {y.dtype}")
     break
 
-dataset_test = dl.LineGraphDataset('./test-ds')
+dataset_test = dl.LineGraphDataset('./test-64')
 
 epochs = 700
-batch_size = 64
+batch_size = 32
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     t_start = perf_counter_ns()
