@@ -9,9 +9,9 @@ if len(sys.argv) < 2:
     print("supply a directory path")
     exit(0)
 
-ImageSize = 64
+ImageSize = 16
 MinLineDim = 3
-NumSamples = 80000
+NumSamples = 3000
 
 def PointInLimits(x, y) -> bool:
     return (x > 1 and x < ImageSize - 2 and y > 1 and y < ImageSize - 2)

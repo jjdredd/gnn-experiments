@@ -63,7 +63,7 @@ def Train(dataloader, model, loss_fn, optimizer, epoch):
             # save_image(, f'pics/gt_{i}.png')
 
 
-dataset = dl.LineGraphDataset('./train-64')
+dataset = dl.LineGraphDataset('./train-16')
 optimizer = torch.optim.Adam(GraphModel.parameters(), lr=1e-4, weight_decay=1e-5)
 
 for data in DataLoader(dataset, batch_size=10):
@@ -73,7 +73,7 @@ for data in DataLoader(dataset, batch_size=10):
     print(f"Shape of y: {y.shape} {y.dtype}")
     break
 
-dataset_test = dl.LineGraphDataset('./test-64')
+dataset_test = dl.LineGraphDataset('./test-16')
 
 epochs = 700
 batch_size = 32
