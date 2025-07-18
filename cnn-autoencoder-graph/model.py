@@ -409,7 +409,7 @@ class CnnGraphEncoder_Ntc_Wes_64(nn.Module):
         self.sigmoid = nn.Sigmoid()
         # input 64x64,
         self.conv = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=32,
+            nn.Conv2d(in_channels=1, out_channels=16,
                       kernel_size=(3, 3),
                       stride=1, padding=1, bias=True),
             # nn.Softsign(),
@@ -417,11 +417,11 @@ class CnnGraphEncoder_Ntc_Wes_64(nn.Module):
             # nn.BatchNorm2d(16),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)), # AvgPool2d
             #  output 32x32 (64/2)
-            nn.Conv2d(in_channels=32, out_channels=64,
+            nn.Conv2d(in_channels=16, out_channels=32,
                       kernel_size=(3, 3),
                       stride=1, padding=1, bias=True),
             nn.Softsign(),
-            nn.Conv2d(in_channels=64, out_channels=128,
+            nn.Conv2d(in_channels=32, out_channels=32,
                       kernel_size=(3, 3),
                       stride=1, padding=1, bias=True),
             nn.Softsign(),
@@ -430,21 +430,21 @@ class CnnGraphEncoder_Ntc_Wes_64(nn.Module):
         self.transposed_conv = nn.Sequential(
             nn.Upsample(scale_factor=2, mode='nearest'),
             # 32x32
-            nn.Conv2d(in_channels=128, out_channels=128,
+            nn.Conv2d(in_channels=32, out_channels=32,
                       kernel_size=(3, 3),
                       stride=1, padding=1, bias=True),
             nn.Softsign(),
-            nn.Conv2d(in_channels=128, out_channels=128,
+            nn.Conv2d(in_channels=32, out_channels=32,
                                kernel_size=(5, 5),
                                stride=1, padding=2, bias=True),
             nn.Softsign(),
             nn.Upsample(scale_factor=2, mode='nearest'),
             # 64x64
-            nn.Conv2d(in_channels=128, out_channels=128,
+            nn.Conv2d(in_channels=32, out_channels=32,
                       kernel_size=(5, 5),
                       stride=1, padding=2, bias=True),
             nn.Softsign(),
-            nn.Conv2d(in_channels=128, out_channels=128,
+            nn.Conv2d(in_channels=32, out_channels=32,
                       kernel_size=(3, 3),
                       stride=1, padding=1, bias=True),
         )

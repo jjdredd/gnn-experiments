@@ -22,7 +22,7 @@ print(f"Using {device} device")
 
 
 # GraphModel = model.CnnGraphEncoder().to(device)
-GraphModel = model.CnnGraphEncoder_Ntc_Wes().to(device)
+GraphModel = model.CnnGraphEncoder_Ntc_Wes_64().to(device)
 print(GraphModel)
 
 upsampling = nn.Upsample(scale_factor=3, mode='nearest')
@@ -76,7 +76,7 @@ for data in DataLoader(dataset, batch_size=10):
 dataset_test = dl.LineGraphDataset('./test-64')
 
 epochs = 700
-batch_size = 32
+batch_size = 16
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     t_start = perf_counter_ns()
