@@ -46,6 +46,7 @@ class GraphLoss(nn.Module):
         super(CustomLoss, self).__init__()
         self.singularity_cutoff = singularity_cutoff
 
+    # this only accepts batched input
     def forward(self, vertices, edges, edge_features, edge_matrices):
         """
         Function to calculate the loss.
@@ -55,9 +56,13 @@ class GraphLoss(nn.Module):
         edge_features: edge probability (tensor, shape (n))
         targets: matrices representing the ground truth edges
         """
+        edge_matrices.requires_grad_(requires_grad=False)
         filtered_edges = FilterRepeatedEdges(edges)
-        V_1 = vertices[filtered_edges[0]]
-        V_2 = vertices[filtered_edges[1]]
+        v_1 = vertices[filtered_edges[0]]
+        v_2 = vertices[filtered_edges[1]]
+        product_1 = torch.einsum('...kij,...mj->...kmi', edge_matrices, v_2)
+        product_2 = torch.einsum('...kmi,...ni->...kmn', edge_matrices, v_2)
+
 
 
 
