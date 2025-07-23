@@ -65,6 +65,7 @@ class GraphLoss(nn.Module):
         v_2 = vertices[filtered_edges[1]]
         linear_product = torch.einsum('...kij,...mj->...kmi', edge_matrices, v_2)
         bilinear_form = torch.einsum('...kmi,...mi->...km', linear_product, v_1)
+        # consider using torch.pow
         regularized_reciprocal = torch.reciprocal(torch.square(bilinear_form) + self.epsilon)
         return -torch.einsum('...km,...m->...k', regularized_reciprocal, edge_features)
 
