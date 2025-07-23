@@ -5,7 +5,10 @@ from torch import nn
 
 # no vector may have a zero coordinate!
 def EdgeMatrix2D(v_1, v_2):
-    return torch.reciprocal(torch.matmul(torch.mul(v_1, v_2), torch.diag(torch.tensor([1.0, -1.0]))))
+    return torch.diag(
+        torch.reciprocal(
+            torch.matmul(torch.mul(v_1, v_2), torch.diag(torch.tensor([1.0, -1.0])))
+        ))
 
 def FilterRepeatedEdges(edges):
     """
@@ -42,9 +45,9 @@ def EdgeMatrices(vertices, edges):
 
 
 class GraphLoss(nn.Module):
-    def __init__(self, singularity_cutoff=1000):
-        super(CustomLoss, self).__init__()
-        self.singularity_cutoff = singularity_cutoff
+    def __init__(self, epsilon=10**(-4)):
+        super(GraphLoss, self).__init__()
+        self.epsilon = epsilon
 
     # this only accepts batched input
     def forward(self, vertices, edges, edge_features, edge_matrices):
@@ -60,8 +63,10 @@ class GraphLoss(nn.Module):
         filtered_edges = FilterRepeatedEdges(edges)
         v_1 = vertices[filtered_edges[0]]
         v_2 = vertices[filtered_edges[1]]
-        product_1 = torch.einsum('...kij,...mj->...kmi', edge_matrices, v_2)
-        product_2 = torch.einsum('...kmi,...ni->...kmn', edge_matrices, v_2)
+        linear_product = torch.einsum('...kij,...mj->...kmi', edge_matrices, v_2)
+        bilinear_form = torch.einsum('...kmi,...mi->...km', linear_product, v_1)
+        regularized_reciprocal = torch.reciprocal(torch.square(bilinear_form) + self.epsilon)
+        return -torch.einsum('...km,...m->...k', regularized_reciprocal, edge_features)
 
 
 
