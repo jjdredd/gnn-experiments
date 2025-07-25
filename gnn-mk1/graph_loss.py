@@ -44,9 +44,10 @@ def EdgeMatrices(vertices, edges):
     return torch.stack(matrix_list, dim=0)
 
 
-class GraphLoss(nn.Module):
+
+class GraphLossRes(nn.Module):
     def __init__(self, epsilon=10**(-4)):
-        super(GraphLoss, self).__init__()
+        super(GraphLossRes, self).__init__()
         self.epsilon = epsilon
 
     # this only accepts batched input
@@ -67,8 +68,38 @@ class GraphLoss(nn.Module):
         bilinear_form = torch.einsum('...kmi,...mi->...km', linear_product, v_1)
         # consider using torch.pow
         regularized_reciprocal = torch.reciprocal(torch.square(bilinear_form) + self.epsilon)
-        return -torch.einsum('...km,...m->...k', regularized_reciprocal, edge_features)
+        return -torch.sum(torch.einsum('...km,...m->...k', regularized_reciprocal, edge_features))
 
 
+class GraphLossSs(nn.Module):
+    def __init__(self):
+        super(GraphLossSs, self).__init__()
+
+    # this only accepts batched input
+    def forward(self, vertices, edges, edge_features, edge_matrices):
+        """
+        Function to calculate the loss.
+        Arguments:
+        vertices: vertex features (tensor, shape (n, m) )
+        edges: vertex indices forming edges (tensor, shape (2, n))
+        edge_features: edge probability (tensor, shape (n))
+        targets: matrices representing the ground truth edges
+        """
+        edge_matrices.requires_grad_(requires_grad=False)
+        filtered_edges = FilterRepeatedEdges(edges)
+        v_1 = vertices[filtered_edges[0]]
+        v_2 = vertices[filtered_edges[1]]
+        linear_product = torch.einsum('...kij,...mj->...kmi', edge_matrices, v_2)
+        bilinear_form = torch.einsum('...kmi,...mi->...km', linear_product, v_1)
+        return -torch.sum(torch.square(torch.diagonal(bilinear_form)))
+
+
+# XXX FIXME:
+# For these losses (where we multiply each expression by the edge weights (probabilities))
+# we can't just use probabilites, because the optimizer will either
+# 1. set all the probabilties to zero in case of the sum of squares loss
+# 2. create extra edges in case of the sum of reciprocal squares loss
+# To combat this we can add an l2 norm of the edge probabilites to the loss
+# with a sign that depends on case above (either case 1 or 2)
 
 

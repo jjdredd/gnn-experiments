@@ -21,17 +21,53 @@ class TestEdgeMatrices(unittest.TestCase):
         edges_processed = gl.FilterRepeatedEdges(edges)
         self.assertTrue(torch.all(torch.isclose(edges_processed, edges_expected)).item())
 
-    def test_GraphLoss_MinVal(self):
-        loss = gl.GraphLoss(epsilon=10**(-3))
+    # GraphLossRes
+    def test_GraphLossRes_MinVal(self):
+        loss = gl.GraphLossRes(epsilon=10**(-3))
         vertices = torch.stack([torch.randn(2) for _ in range(2)], dim=0)
         edges = torch.tensor([[0, 1], [1, 0]])
-        edge_features = torch.tensor([1.0, 1.0]) # or edge weights in this case
+        edge_features = torch.tensor([1.0]) # or edge weights in this case
         edge_matrices = gl.EdgeMatrices(vertices, edges)
         fake_vertices = vertices + 0.1 * torch.stack([torch.randn(2) for _ in range(2)], dim=0)
         gt_loss_val = loss.forward(fake_vertices, edges, edge_features, edge_matrices)
-        print('gt_loss_val', gt_loss_val)
+        print('test_GraphLossRes_MinVal:gt_loss_val', gt_loss_val)
 
-    def test_GraphLoss(self):
+    def test_GraphLossRes_MinVal3(self):
+        loss = gl.GraphLossRes(epsilon=10**(-3))
+        vertices = torch.stack([torch.randn(2) for _ in range(3)], dim=0)
+        edges = torch.tensor([[0, 1, 2, 0], [1, 0, 0, 2]])
+        edge_features = torch.tensor([1.0, 1.0]) # or edge weights in this case
+        edge_matrices = gl.EdgeMatrices(vertices, edges)
+        fake_vertices = vertices # + 0.1 * torch.stack([torch.randn(2) for _ in range(3)], dim=0)
+        fake_edges = torch.tensor([[0, 1, 2, 1], [1, 0, 1, 2]])
+        gt_loss_val = loss.forward(fake_vertices, fake_edges, edge_features, edge_matrices)
+        print('test_GraphLossRes_MinVal3:gt_loss_val', gt_loss_val)
+
+    # GraphLossSs
+    def test_GraphLossSs_MinVal(self):
+        loss = gl.GraphLossSs()
+        vertices = torch.stack([torch.randn(2) for _ in range(2)], dim=0)
+        edges = torch.tensor([[0, 1], [1, 0]])
+        edge_features = torch.tensor([1.0]) # or edge weights in this case
+        edge_matrices = gl.EdgeMatrices(vertices, edges)
+        fake_vertices = vertices # + 0.1 * torch.stack([torch.randn(2) for _ in range(2)], dim=0)
+        gt_loss_val = loss.forward(fake_vertices, edges, edge_features, edge_matrices)
+        print('test_GraphLossSs_MinVal:gt_loss_val', gt_loss_val)
+
+    def test_GraphLossSs_MinVal3(self):
+        loss = gl.GraphLossSs()
+        vertices = torch.stack([torch.randn(2) for _ in range(3)], dim=0)
+        edges = torch.tensor([[0, 1, 2, 0], [1, 0, 0, 2]])
+        edge_features = torch.tensor([1.0, 1.0]) # or edge weights in this case
+        edge_matrices = gl.EdgeMatrices(vertices, edges)
+        print('edge_matrices', edge_matrices)
+        fake_vertices = vertices # + 0.1 * torch.stack([torch.randn(2) for _ in range(3)], dim=0)
+        fake_edges = edges # torch.tensor([[0, 1, 2, 1], [1, 0, 1, 2]])
+        gt_loss_val = loss.forward(fake_vertices, fake_edges, edge_features, edge_matrices)
+        print('test_GraphLossSs_MinVal3:gt_loss_val', gt_loss_val)
+
+
+    def test_GraphLossRes(self):
         # manipulate the vertices/edges and make sure the new loss is greater than the gt_loss_val
         pass
 
