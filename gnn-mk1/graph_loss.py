@@ -102,4 +102,4 @@ class GraphLossSs(nn.Module):
 # To combat this we can add an l2 norm of the edge probabilites to the loss
 # with a sign that depends on case above (either case 1 or 2)
 
-
+# To fix this, use a saddle potential (x - 0.5) * (y - 0.5)
