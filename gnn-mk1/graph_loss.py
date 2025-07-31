@@ -68,7 +68,7 @@ class GraphLossRes(nn.Module):
         bilinear_form = torch.einsum('...kmi,...mi->...km', linear_product, v_1)
         # consider using torch.pow
         regularized_reciprocal = torch.reciprocal(torch.square(bilinear_form) + self.epsilon)
-        return -torch.sum(torch.einsum('...km,...m->...k', regularized_reciprocal, edge_features))
+        return -torch.sum(torch.einsum('...km,...m->...k', (regularized_reciprocal - 0.5), (edge_features - 0.5)))
 
 
 class GraphLossSs(nn.Module):
@@ -91,7 +91,8 @@ class GraphLossSs(nn.Module):
         v_2 = vertices[filtered_edges[1]]
         linear_product = torch.einsum('...kij,...mj->...kmi', edge_matrices, v_2)
         bilinear_form = torch.einsum('...kmi,...mi->...km', linear_product, v_1)
-        return -torch.sum(torch.square(torch.diagonal(bilinear_form)))
+        return -torch.sum(torch.einsum('...km,...m->...k', (bilinear_form - 0.5), (edge_features - 0.5)))
+        # return -torch.sum(torch.square(torch.diagonal(bilinear_form))) - old
 
 
 # XXX FIXME:
