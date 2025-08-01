@@ -45,9 +45,9 @@ def EdgeMatrices(vertices, edges):
 
 
 
-class GraphLossRes(nn.Module):
+class GraphLossResidualSum(nn.Module):
     def __init__(self, epsilon=10**(-4)):
-        super(GraphLossRes, self).__init__()
+        super(GraphLossResidualSum, self).__init__()
         self.epsilon = epsilon
 
     # this only accepts batched input
@@ -71,9 +71,9 @@ class GraphLossRes(nn.Module):
         return -torch.sum(torch.einsum('...km,...m->...k', (regularized_reciprocal - 0.5), (edge_features - 0.5)))
 
 
-class GraphLossSs(nn.Module):
+class GraphLossSumSquareBilinear(nn.Module):
     def __init__(self):
-        super(GraphLossSs, self).__init__()
+        super(GraphLossSumSquareBilinear, self).__init__()
 
     # this only accepts batched input
     def forward(self, vertices, edges, edge_features, edge_matrices):
