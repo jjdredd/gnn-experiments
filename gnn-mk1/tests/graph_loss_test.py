@@ -32,16 +32,16 @@ class TestEdgeMatrices(unittest.TestCase):
     #     gt_loss_val = loss.forward(fake_vertices, edges, edge_features, edge_matrices)
     #     print('test_GraphLossResidualSum_MinVal:gt_loss_val', gt_loss_val)
 
-    def test_GraphLossResidualSum_MinVal3(self):
-        loss = gl.GraphLossResidualSum(epsilon=10**(-3))
-        vertices = torch.stack([torch.randn(2) for _ in range(3)], dim=0)
-        edges = torch.tensor([[0, 1, 2, 0], [1, 0, 0, 2]])
-        edge_features = torch.tensor([1.0, 1.0]) # or edge weights in this case
-        edge_matrices = gl.EdgeMatrices(vertices, edges)
-        fake_vertices = vertices # + 0.1 * torch.stack([torch.randn(2) for _ in range(3)], dim=0)
-        fake_edges = torch.tensor([[0, 1, 2, 1], [1, 0, 1, 2]])
-        gt_loss_val = loss.forward(fake_vertices, fake_edges, edge_features, edge_matrices)
-        print('test_GraphLossResidualSum_MinVal3:gt_loss_val', gt_loss_val)
+    # def test_GraphLossResidualSum_MinVal3(self):
+    #     loss = gl.GraphLossResidualSum(epsilon=10**(-3))
+    #     vertices = torch.stack([torch.randn(2) for _ in range(3)], dim=0)
+    #     edges = torch.tensor([[0, 1, 2, 0], [1, 0, 0, 2]])
+    #     edge_features = torch.tensor([1.0, 1.0]) # or edge weights in this case
+    #     edge_matrices = gl.EdgeMatrices(vertices, edges)
+    #     fake_vertices = vertices # + 0.1 * torch.stack([torch.randn(2) for _ in range(3)], dim=0)
+    #     fake_edges = torch.tensor([[0, 1, 2, 1], [1, 0, 1, 2]])
+    #     gt_loss_val = loss.forward(fake_vertices, fake_edges, edge_features, edge_matrices)
+    #     print('test_GraphLossResidualSum_MinVal3:gt_loss_val', gt_loss_val)
 
     # GraphLossSumSquareBilinear
 
@@ -51,63 +51,55 @@ class TestEdgeMatrices(unittest.TestCase):
     # 2. confidence changing
     # 3. extra edge
     # 4. missing edge
-    def test_GraphLossSumSquareBilinear_MinVal(self):
-        loss = gl.GraphLossSumSquareBilinear()
-        vertices = torch.stack([torch.randn(2) for _ in range(2)], dim=0)
-        edges = torch.tensor([[0, 1], [1, 0]])
-        edge_features = torch.tensor([1.0]) # or edge weights in this case
-        edge_matrices = gl.EdgeMatrices(vertices, edges)
-        fake_vertices = vertices # + 0.1 * torch.stack([torch.randn(2) for _ in range(2)], dim=0)
-        gt_loss_val = loss.forward(fake_vertices, edges, edge_features, edge_matrices)
-        print('test_GraphLossSumSquareBilinear_MinVal:gt_loss_val', gt_loss_val)
-
-    def test_GraphLossSumSquareBilinear_MinVal3(self):
-        loss = gl.GraphLossSumSquareBilinear()
-        vertices = torch.stack([torch.randn(2) for _ in range(3)], dim=0)
-        edges = torch.tensor([[0, 1, 2, 0], [1, 0, 0, 2]])
-        edge_features = torch.tensor([1.0, 1.0]) # or edge weights in this case
-        edge_matrices = gl.EdgeMatrices(vertices, edges)
-        print('edge_matrices', edge_matrices)
-        fake_vertices = vertices # + 0.1 * torch.stack([torch.randn(2) for _ in range(3)], dim=0)
-        fake_edges = edges # torch.tensor([[0, 1, 2, 1], [1, 0, 1, 2]])
-        gt_loss_val = loss.forward(fake_vertices, fake_edges, edge_features, edge_matrices)
-        print('test_GraphLossSumSquareBilinear_MinVal3:gt_loss_val', gt_loss_val)
 
 
 class TestGraphLossSumSquareBilinear(unittest.TestCase):
     # may want to use setUpClass() instead, see docs
     def setUp(self):
         self.loss = gl.GraphLossSumSquareBilinear()
-        self.vertices = torch.tensor([[1.0, 0],
-                                      [1.0, 1.0],
-                                      [0.0, 1.0]])
+        self.vertices = torch.tensor([[2.0, 1.0],
+                                      [2.0, 2.0],
+                                      [1.0, 2.0]])
         self.edges = torch.tensor([[0, 1, 2, 0], [1, 0, 0, 2]])
         self.edge_features = torch.tensor([1.0, 1.0]) # or edge weights in this case
-        self.edge_matrices = gl.EdgeMatrices(vertices, edges)
+        self.edge_matrices = gl.EdgeMatrices(self.vertices, self.edges)
         self.base_loss = self.loss(self.vertices, self.edges, self.edge_features, self.edge_matrices)
         print('base loss: ', self.base_loss)
 
     def test_DisplacedVertex(self):
         fake_vertices = torch.clone(self.vertices)
-        fake_vertices[1] += torch.tensor([0.01, 0.02])
+        fake_vertices[1] += torch.tensor([0.01, 0.2])
         new_loss = self.loss(fake_vertices, self.edges, self.edge_features, self.edge_matrices)
-        self.assertLess(self.base_loss, new_loss)
+        self.assertLess(self.base_loss.item(), new_loss.item())
 
     def test_WrongWeight(self):
         fake_edge_features = torch.tensor([1.0, 0.2])
         new_loss = self.loss(self.vertices, self.edges, fake_edge_features, self.edge_matrices)
-        self.assertLess(self.base_loss, new_loss)
+        self.assertLess(self.base_loss.item(), new_loss.item())
         fake_edge_features = torch.tensor([0.2, 1.0])
         new_loss = self.loss(self.vertices, self.edges, fake_edge_features, self.edge_matrices)
-        self.assertLess(self.base_loss, new_loss)
+        self.assertLess(self.base_loss.item(), new_loss.item())
 
     def test_MissingEdge(self):
-        pass
+        fake_edges = torch.tensor([[0, 1], [1, 0]])
+        new_loss = self.loss(self.vertices, fake_edges, self.edge_features, self.edge_matrices)
+        self.assertLess(self.base_loss.item(), new_loss.item())
+        fake_edge_features = torch.tensor([0.2, 1.0])
+        new_loss = self.loss(self.vertices, fake_edges, fake_edge_features, self.edge_matrices)
+        self.assertLess(self.base_loss.item(), new_loss.item())
+        fake_edge_features = torch.tensor([1.0, 0.0])
+        new_loss = self.loss(self.vertices, fake_edges, fake_edge_features, self.edge_matrices)
+        self.assertAlmostEqual(self.base_loss.item(), new_loss.item())
 
     def test_ExtraEdge(self):
-        pass
-
-        
+        print('extra edge')
+        fake_edges = torch.tensor([[0, 1, 2, 0, 1, 2], [1, 0, 0, 2, 2, 1]])
+        fake_edge_features = torch.tensor([1.0, 1.0, 1.0])
+        new_loss = self.loss(self.vertices, fake_edges, fake_edge_features, self.edge_matrices)
+        self.assertLess(self.base_loss.item(), new_loss.item())
+        fake_edge_features = torch.tensor([1.0, 1.0, 0.0])
+        new_loss = self.loss(self.vertices, fake_edges, fake_edge_features, self.edge_matrices)
+        self.assertAlmostEqual(self.base_loss.item(), new_loss.item())
 
 
 if __name__ == "__main__":

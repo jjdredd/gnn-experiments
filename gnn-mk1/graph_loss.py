@@ -90,9 +90,9 @@ class GraphLossSumSquareBilinear(nn.Module):
         v_1 = vertices[filtered_edges[0]]
         v_2 = vertices[filtered_edges[1]]
         linear_product = torch.einsum('...kij,...mj->...kmi', edge_matrices, v_2)
-        bilinear_form = torch.einsum('...kmi,...mi->...km', linear_product, v_1)
-        return -torch.sum(torch.einsum('...km,...m->...k', (bilinear_form - 0.5), (edge_features - 0.5)))
-        # return -torch.sum(torch.square(torch.diagonal(bilinear_form))) - old
+        bilinear_form_square = torch.square(torch.einsum('...kmi,...mi->...km', linear_product, v_1))
+
+        return torch.sum(torch.einsum('...km,...m->...km', (bilinear_form_square - 0.5), (edge_features - 0.5)))
 
 
 # XXX FIXME:
