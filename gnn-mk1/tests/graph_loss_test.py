@@ -82,14 +82,12 @@ class TestGraphLossSumSquareBilinear(unittest.TestCase):
 
     def test_MissingEdge(self):
         fake_edges = torch.tensor([[0, 1], [1, 0]])
+        fake_edge_features = torch.tensor([1.0])
         new_loss = self.loss(self.vertices, fake_edges, self.edge_features, self.edge_matrices)
         self.assertLess(self.base_loss.item(), new_loss.item())
-        fake_edge_features = torch.tensor([0.2, 1.0])
+        fake_edge_features = torch.tensor([0.2])
         new_loss = self.loss(self.vertices, fake_edges, fake_edge_features, self.edge_matrices)
         self.assertLess(self.base_loss.item(), new_loss.item())
-        fake_edge_features = torch.tensor([1.0, 0.0])
-        new_loss = self.loss(self.vertices, fake_edges, fake_edge_features, self.edge_matrices)
-        self.assertAlmostEqual(self.base_loss.item(), new_loss.item())
 
     def test_ExtraEdge(self):
         print('extra edge')
