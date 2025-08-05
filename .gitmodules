@@ -1,0 +1,3 @@
+[submodule "ultralytics"]
+	path = edge-object-detection/ultralytics
+	url = https://github.com/ultralytics/ultralytics

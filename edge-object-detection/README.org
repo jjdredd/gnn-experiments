@@ -1,0 +1,14 @@
+* Edge detection as object detection experiment
+ This is an experiment to detect graph edges using an object detector.
+** Start with a yolo11 model (no pretraining)
+may try v 8 but 9 or 10 are not recommended, yolo11n is smaller
+** Make 3 classes of edges:
+*** slanted like y=x
+*** slanted like y=-x
+*** vertical
+*** horizontal
+** Bounding box center is now the edge center
+** Bounding box width and height are either
+*** absolute values of edge half vector
+a vector from edge center to edge vertex
+*** or just same bounding box width and height

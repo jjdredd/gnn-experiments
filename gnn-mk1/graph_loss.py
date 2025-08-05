@@ -91,7 +91,6 @@ class GraphLossSumSquareBilinear(nn.Module):
         v_2 = vertices[filtered_edges[1]]
         linear_product = torch.einsum('...kij,...mj->...kmi', edge_matrices, v_2)
         bilinear_form_square = torch.square(torch.einsum('...kmi,...mi->...km', linear_product, v_1))
-
         return torch.sum(torch.einsum('...km,...m->...km', (bilinear_form_square - 0.5), (edge_features - 0.5)))
 
 
@@ -100,7 +99,7 @@ class GraphLossSumSquareBilinear(nn.Module):
 # we can't just use probabilites, because the optimizer will either
 # 1. set all the probabilties to zero in case of the sum of squares loss
 # 2. create extra edges in case of the sum of reciprocal squares loss
-# To combat this we can add an l2 norm of the edge probabilites to the loss
+# To combat this we can add an l2 norm of the edge probabilites (weights) to the loss
 # with a sign that depends on case above (either case 1 or 2)
 
 # To fix this, use a saddle potential (x - 0.5) * (y - 0.5)
