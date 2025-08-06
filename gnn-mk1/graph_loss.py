@@ -49,6 +49,8 @@ class GraphLossResidualSum(nn.Module):
     def __init__(self, epsilon=10**(-4)):
         super(GraphLossResidualSum, self).__init__()
         self.epsilon = epsilon
+        self.softplus = torch.nn.Softplus(beta=4)
+        self.edge_num_loss_scale = 2
 
     # this only accepts batched input
     def forward(self, vertices, edges, edge_features, edge_matrices):
@@ -61,6 +63,7 @@ class GraphLossResidualSum(nn.Module):
         targets: matrices representing the ground truth edges
         """
         edge_matrices.requires_grad_(requires_grad=False)
+        num_gt_edges = edge_matrices.shape[0]
         filtered_edges = FilterRepeatedEdges(edges)
         v_1 = vertices[filtered_edges[0]]
         v_2 = vertices[filtered_edges[1]]
@@ -68,7 +71,8 @@ class GraphLossResidualSum(nn.Module):
         bilinear_form = torch.einsum('...kmi,...mi->...km', linear_product, v_1)
         # consider using torch.pow
         regularized_reciprocal = torch.reciprocal(torch.square(bilinear_form) + self.epsilon)
-        return -torch.sum(torch.einsum('...km,...m->...k', (regularized_reciprocal - 0.5), (edge_features - 0.5)))
+        return (self.edge_num_loss_scale * self.softplus(edge_features.abs().sum() - num_gt_edges)
+                - torch.sum(torch.einsum('...km,...m->...k', regularized_reciprocal, edge_features)))
 
 
 class GraphLossSumSquareBilinear(nn.Module):

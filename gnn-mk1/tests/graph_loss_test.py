@@ -53,10 +53,10 @@ class TestEdgeMatrices(unittest.TestCase):
     # 4. missing edge
 
 
-class TestGraphLossSumSquareBilinear(unittest.TestCase):
+class TestGraphLossResidualSum(unittest.TestCase):
     # may want to use setUpClass() instead, see docs
     def setUp(self):
-        self.loss = gl.GraphLossSumSquareBilinear()
+        self.loss = gl.GraphLossResidualSum()
         self.vertices = torch.tensor([[2.0, 1.0],
                                       [2.0, 2.0],
                                       [1.0, 2.0]])
