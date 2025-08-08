@@ -87,22 +87,24 @@ class YoloDataGenerator():
             y_1 = random.randint(2, self.image_size - 2)
             y_2 = random.randint(2, self.image_size - 2)
 
-        edge_class = self.ClassifyEdge((x_1, y_1), (x_2, y_2))
-        edge_center = self.NormalizeCoordinates(YoloDataGenerator.CalculateCenter((x_1, y_1), (x_2, y_2)))
-        edge_bb = self.NormalizeCoordinates(YoloDataGenerator.EdgeBoungdingBox((x_1, y_1), (x_2, y_2)))
+        # Define start and end points of the line
+        start_point = (x_1, y_1)
+        end_point = (x_2, y_2)
+        edge_class = self.ClassifyEdge(start_point, end_point)
+        edge_center = self.NormalizeCoordinates(YoloDataGenerator.CalculateCenter(start_point, end_point))
+        edge_bb = self.NormalizeCoordinates(YoloDataGenerator.EdgeBoungdingBox(start_point, end_point))
         # need to normalize coordinates
         txt_file.write(f'{edge_class}\t{edge_center[0]}\t{edge_center[1]}\t{edge_bb[0]}\t{edge_bb[1]}\n')
 
         image = np.zeros((self.image_size, self.image_size, 3), dtype=np.uint8)  # Example: black image
-        # Define start and end points of the line
-        start_point = (x_1, y_1)
-        end_point = (x_2, y_2)
         # Define line color (BGR format)
         color = (255, 255, 255)
         # Define line thickness
         thickness = EdgeThickness
         # Draw the line
-        cv2.line(image, start_point, end_point, color, thickness)
+        image_start_point = (start_point[0], self.image_size - start_point[1] - 1)
+        image_end_point = (end_point[0], self.image_size - end_point[1] - 1)
+        cv2.line(image, image_start_point, image_end_point, color, thickness)
         cv2.imwrite(f'{image_file_directory}/{base_name}.png', image)
 
     def GenerateDataSets(self):
