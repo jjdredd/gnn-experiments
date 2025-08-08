@@ -10,7 +10,7 @@ import yaml
 
 ImageSize = 100
 MinLineDim = 5
-NumTrainSamples = 20000
+NumTrainSamples = 30000
 NumValSamples = 1000
 
 EdgeThickness = 2
@@ -82,6 +82,7 @@ class YoloDataGenerator():
         while (abs(x_1 - x_2) < self.min_line_dim
                and abs(y_1 - y_2) < self.min_line_dim
                and not (self.PointInLimits(x_1, y_1) or self.PointInLimits(x_2, y_2))):
+            # does this include the limits on the right (left)?
             x_1 = random.randint(2, self.image_size - 2)
             x_2 = random.randint(2, self.image_size - 2)
             y_1 = random.randint(2, self.image_size - 2)
@@ -90,9 +91,13 @@ class YoloDataGenerator():
         # Define start and end points of the line
         start_point = (x_1, y_1)
         end_point = (x_2, y_2)
+        image_start_point = (start_point[0], self.image_size - start_point[1] - 1)
+        image_end_point = (end_point[0], self.image_size - end_point[1] - 1)
         edge_class = self.ClassifyEdge(start_point, end_point)
-        edge_center = self.NormalizeCoordinates(YoloDataGenerator.CalculateCenter(start_point, end_point))
-        edge_bb = self.NormalizeCoordinates(YoloDataGenerator.EdgeBoungdingBox(start_point, end_point))
+        edge_center = self.NormalizeCoordinates(YoloDataGenerator.CalculateCenter(image_start_point,
+                                                                                  image_end_point))
+        edge_bb = self.NormalizeCoordinates(YoloDataGenerator.EdgeBoungdingBox(image_start_point, 
+                                                                               image_end_point))
         # need to normalize coordinates
         txt_file.write(f'{edge_class}\t{edge_center[0]}\t{edge_center[1]}\t{edge_bb[0]}\t{edge_bb[1]}\n')
 
@@ -102,8 +107,6 @@ class YoloDataGenerator():
         # Define line thickness
         thickness = EdgeThickness
         # Draw the line
-        image_start_point = (start_point[0], self.image_size - start_point[1] - 1)
-        image_end_point = (end_point[0], self.image_size - end_point[1] - 1)
         cv2.line(image, image_start_point, image_end_point, color, thickness)
         cv2.imwrite(f'{image_file_directory}/{base_name}.png', image)
 
@@ -149,10 +152,10 @@ if __name__ == '__main__':
     #     print('Destination directory required')
     #     exit(-1)
 
-    ydg = YoloDataGenerator('yolo-training-data')
+    ydg = YoloDataGenerator('/mnt/tmpfs/yolo-training-data')
     ydg.GenerateDataSets()
     print('Done!')
 
 
 # training command
-# yolo detect train data=./yolo-training-data/data.yaml model=yolo11s.pt augment=False epochs=16 pretrained=False
+# yolo detect train data=./yolo-training-data/data.yaml model=yolo11s.pt augment=False epochs=16 pretrained=False hsv_h=0.0 hsv_s=0.0 hsv_v=0.0 degrees=0.0 translate=0.0 scale=0.0 shear=0.0 perspective=0.0 flipud=0.0 fliplr=0.0 bgr=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
