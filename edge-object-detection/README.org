@@ -12,3 +12,12 @@ may try v 8 but 9 or 10 are not recommended, yolo11n is smaller
 *** absolute values of edge half vector
 a vector from edge center to edge vertex
 *** or just same bounding box width and height
+* Other related work
+** CubiCasa5K: A Dataset and an Improved Multi-Task Model for Floorplan Image Analysis
+*** 1904.01920v1
+*** https://arxiv.org/pdf/1904.01920v1
+*** https://github.com/CubiCasa/CubiCasa5k
+*** [[https://zenodo.org/records/2613548][Floor Plan Dataset]]
+** Raster-to-Vector: Revisiting Floorplan Transformation
+*** http://art-programmer.github.io/floorplan-transformation/paper.pdf
+*** https://github.com/art-programmer/FloorplanTransformation
