@@ -13,11 +13,14 @@ import random
 import pickle
 
 
-ImageSize = 100
-NumTrainSamples = 30000
-NumValSamples = 1000
+ImageSize = 400
+NumTrainSamples = 20000
+NumValSamples = 500
 
-EdgeThickness = 2
+EdgeThickness = 0.5
+
+NodeNums = [8, 10]
+EdgeNums = [1, 5]
 
 
 def EnsureDirectoryExists(directory_path):
@@ -35,8 +38,6 @@ def EnsureDirectoryExists(directory_path):
 class YoloDataGenerator():
     def __init__(self,
                  output_directory: str,
-                 nodes: list[float],
-                 edges: list[float],
                  training_samples=80000,
                  validation_samples=1000,
                  min_line_dim=5):
@@ -45,8 +46,8 @@ class YoloDataGenerator():
         self.validation_samples = validation_samples
         self.min_line_dim = min_line_dim
         self.image_size = ImageSize
-        self.nodes = nodes
-        self.edges = edges
+        self.edge_nums = EdgeNums
+        self.node_nums = NodeNums
 
     @staticmethod
     def PixelCompare(x, y):
@@ -92,27 +93,36 @@ class YoloDataGenerator():
     def GenerateGraphRandom(self):
         edges, nodes = 0, 0
         while edges < 1 or nodes <= edges:
-            edges = random.randrange(self.edges[0], self.edges[1])
-            nodes = random.randrange(self.vertices[0], self.vertices[1])
+            edges = random.randrange(self.edge_nums[0], self.edge_nums[1])
+            nodes = random.randrange(self.node_nums[0], self.node_nums[1])
         return self.GeneratePlanarGraph(nodes, edges)
 
-    def RenderGraph(self, graph, file_path):
+    def RenderGraph(self, graph, pos, file_path):
         plt.figure(figsize=(1, 1), dpi=self.image_size)
-        nx.draw_networkx_edges(graph, #pos=nx.planar_layout(G),
-                       with_labels=False,
-                       node_color='black', # node_color='lightblue',
-                       node_size=0,
-                       width=EdgeThickness,
-                       font_weight='bold',
-                       edge_color='black')
+        plt.box(False)
+        nx.draw_networkx_edges(graph, pos=pos,
+                               # with_labels=False, node_color='lightblue', font_weight='bold',
+                               node_size=0,
+                               width=EdgeThickness,
+                               edge_color='black')
         plt.savefig(file_path)
         plt.clf()
         plt.close('all')
 
-    def RecordGraphEdges(self, graph, file_path):
-        txt_file = open(f'{label_file_directory}/{base_name}.txt', 'w')
-        
-        pass
+    def RecordGraphEdges(self, graph, pos, file_path):
+        txt_file = open(file_path, 'w')
+        for edge in graph.edges:
+            start_point = pos[edge[0]]
+            end_point = pos[edge[1]]
+            # the edge coordinates are suposed to be in range [0; 1]
+            # according to the way 'pos' was calculated in self.GenerateSample()
+            edge_class = self.ClassifyEdge(start_point, end_point)
+            edge_center = YoloDataGenerator.CalculateCenter(start_point,
+                                                            end_point)
+            edge_bb = YoloDataGenerator.EdgeBoungdingBox(start_point, 
+                                                         end_point)
+            txt_file.write(f'{edge_class}\t{edge_center[0]}\t{edge_center[1]}')
+            txt_file.write(f'\t{edge_bb[0]}\t{edge_bb[1]}\n')
 
     def GenerateSample(self, base_name, directory_path, training):
         subdirectory = 'train' if training else 'val'
@@ -121,40 +131,19 @@ class YoloDataGenerator():
         EnsureDirectoryExists(label_file_directory)
         EnsureDirectoryExists(image_file_directory)
 
-        graph = self.GeneratePlanarGraph()
-        self.RenderGraph(graph, f'{image_file_directory}/{base_name}.png')
-        self.RecordGraphEdges(graph, f'{label_file_directory}/{base_name}.txt')
-
-        # Define start and end points of the line
-        start_point = (x_1, y_1)
-        end_point = (x_2, y_2)
-        image_start_point = (start_point[0], self.image_size - start_point[1] - 1)
-        image_end_point = (end_point[0], self.image_size - end_point[1] - 1)
-        edge_class = self.ClassifyEdge(start_point, end_point)
-        edge_center = self.NormalizeCoordinates(YoloDataGenerator.CalculateCenter(image_start_point,
-                                                                                  image_end_point))
-        edge_bb = self.NormalizeCoordinates(YoloDataGenerator.EdgeBoungdingBox(image_start_point, 
-                                                                               image_end_point))
-        # need to normalize coordinates
-        txt_file.write(f'{edge_class}\t{edge_center[0]}\t{edge_center[1]}\t{edge_bb[0]}\t{edge_bb[1]}\n')
-
-        image = np.zeros((self.image_size, self.image_size, 3), dtype=np.uint8)  # Example: black image
-        # Define line color (BGR format)
-        color = (255, 255, 255)
-        # Define line thickness
-        thickness = EdgeThickness
-        # Draw the line
-        cv2.line(image, image_start_point, image_end_point, color, thickness)
-        cv2.imwrite(f'{image_file_directory}/{base_name}.png', image)
+        graph = self.GenerateGraphRandom()
+        pos = nx.planar_layout(graph, scale=0.5, center=(0.5, 0.5))
+        self.RenderGraph(graph, pos, f'{image_file_directory}/{base_name}.png')
+        self.RecordGraphEdges(graph, pos, f'{label_file_directory}/{base_name}.txt')
 
     def GenerateDataSets(self):
         EnsureDirectoryExists(self.output_directory)
         # generate the training data set
         for n in range(NumTrainSamples):
-            self.GenerateSample(f'line_{n}', self.output_directory, True)
+            self.GenerateSample(f'graph_{n}', self.output_directory, True)
         # generate the 
         for n in range(NumValSamples):
-            self.GenerateSample(f'line_{n}', self.output_directory, False)
+            self.GenerateSample(f'graph_{n}', self.output_directory, False)
 
         data_dict = {'train': 'images/train',
                      'val': 'images/val',
@@ -167,11 +156,11 @@ class YoloDataGenerator():
             yaml.dump(data_dict, yaml_config_file)
 
 if __name__ == '__main__':
-    # if len(sys.argv) < 2:
-    #     print('Destination directory required')
-    #     exit(-1)
+    if len(sys.argv) < 2:
+        print('Destination directory required')
+        exit(-1)
 
-    ydg = YoloDataGenerator('/mnt/tmpfs/yolo-training-data')
+    ydg = YoloDataGenerator(sys.argv[1])
     ydg.GenerateDataSets()
     print('Done!')
 
