@@ -7,9 +7,13 @@ import numpy as np
 import random
 import yaml
 
+import networkx as nx
+import matplotlib.pyplot as plt
+import random
+import pickle
+
 
 ImageSize = 100
-MinLineDim = 5
 NumTrainSamples = 30000
 NumValSamples = 1000
 
@@ -29,12 +33,20 @@ def EnsureDirectoryExists(directory_path):
 
 
 class YoloDataGenerator():
-    def __init__(self, output_directory, training_samples=80000, validation_samples=1000, min_line_dim=5):
+    def __init__(self,
+                 output_directory: str,
+                 nodes: list[float],
+                 edges: list[float],
+                 training_samples=80000,
+                 validation_samples=1000,
+                 min_line_dim=5):
         self.output_directory = output_directory
         self.training_samples = training_samples
         self.validation_samples = validation_samples
         self.min_line_dim = min_line_dim
         self.image_size = ImageSize
+        self.nodes = nodes
+        self.edges = edges
 
     @staticmethod
     def PixelCompare(x, y):
@@ -47,9 +59,6 @@ class YoloDataGenerator():
     @staticmethod
     def EdgeBoungdingBox(p_1, p_2):
         return (abs(p_2[0] - p_1[0]), abs(p_2[1] - p_1[1]))
-
-    def PointInLimits(self, x, y) -> bool:
-        return (x > 1 and x < self.image_size - 2 and y > 1 and y < self.image_size - 2)
 
     def ClassifyEdge(self, p_1, p_2) -> int:
         """
@@ -71,22 +80,50 @@ class YoloDataGenerator():
     def NormalizeCoordinates(self, p):
         return (p[0] / self.image_size, p[1] / self.image_size)
 
+    def GeneratePlanarGraph(self, nodes, edges):
+        G = nx.barabasi_albert_graph(nodes, edges)
+        is_planar, embedding = nx.check_planarity(G, counterexample=True)
+        while not is_planar:
+            edges = list(embedding.edges())[0]
+            G.remove_edge(*edges)
+            is_planar, embedding = nx.check_planarity(G, counterexample=True)
+        return G
+
+    def GenerateGraphRandom(self):
+        edges, nodes = 0, 0
+        while edges < 1 or nodes <= edges:
+            edges = random.randrange(self.edges[0], self.edges[1])
+            nodes = random.randrange(self.vertices[0], self.vertices[1])
+        return self.GeneratePlanarGraph(nodes, edges)
+
+    def RenderGraph(self, graph, file_path):
+        plt.figure(figsize=(1, 1), dpi=self.image_size)
+        nx.draw_networkx_edges(graph, #pos=nx.planar_layout(G),
+                       with_labels=False,
+                       node_color='black', # node_color='lightblue',
+                       node_size=0,
+                       width=EdgeThickness,
+                       font_weight='bold',
+                       edge_color='black')
+        plt.savefig(file_path)
+        plt.clf()
+        plt.close('all')
+
+    def RecordGraphEdges(self, graph, file_path):
+        txt_file = open(f'{label_file_directory}/{base_name}.txt', 'w')
+        
+        pass
+
     def GenerateSample(self, base_name, directory_path, training):
         subdirectory = 'train' if training else 'val'
         label_file_directory = f'{directory_path}/labels/{subdirectory}'
         image_file_directory = f'{directory_path}/images/{subdirectory}'
         EnsureDirectoryExists(label_file_directory)
         EnsureDirectoryExists(image_file_directory)
-        txt_file = open(f'{label_file_directory}/{base_name}.txt', 'w')
-        x_1 = x_2 = y_1 = y_2 = 0
-        while (abs(x_1 - x_2) < self.min_line_dim
-               and abs(y_1 - y_2) < self.min_line_dim
-               and not (self.PointInLimits(x_1, y_1) or self.PointInLimits(x_2, y_2))):
-            # does this include the limits on the right (left)?
-            x_1 = random.randint(2, self.image_size - 2)
-            x_2 = random.randint(2, self.image_size - 2)
-            y_1 = random.randint(2, self.image_size - 2)
-            y_2 = random.randint(2, self.image_size - 2)
+
+        graph = self.GeneratePlanarGraph()
+        self.RenderGraph(graph, f'{image_file_directory}/{base_name}.png')
+        self.RecordGraphEdges(graph, f'{label_file_directory}/{base_name}.txt')
 
         # Define start and end points of the line
         start_point = (x_1, y_1)
@@ -118,27 +155,9 @@ class YoloDataGenerator():
         # generate the 
         for n in range(NumValSamples):
             self.GenerateSample(f'line_{n}', self.output_directory, False)
-        # XXX
-        # refactorme
-        # pass these directories into GenerateSample()!!!
+
         data_dict = {'train': 'images/train',
                      'val': 'images/val',
-                     'hsv_h': 0.0,
-                     'hsv_s': 0.0,
-                     'hsv_v': 0.0,
-                     'degrees': 0.0,
-                     'translate': 0.0,
-                     'scale': 0.0,
-                     'shear': 0.0,
-                     'perspective': 0.0,
-                     'flipud': 0.0,
-                     'fliplr': 0.0,
-                     'bgr': 0.0,
-                     'mosaic': 0.0,
-                     'mixup': 0.0,
-                     'cutmix': 0.0,
-                     'copy_paste': 0.0,
-                     'erasing': 0.0,
                      'names': {
                          0: 'posslant',
                          1: 'negslant',
@@ -157,5 +176,6 @@ if __name__ == '__main__':
     print('Done!')
 
 
+# this training command is essential 
 # training command
 # yolo detect train data=./yolo-training-data/data.yaml model=yolo11s.pt augment=False epochs=16 pretrained=False hsv_h=0.0 hsv_s=0.0 hsv_v=0.0 degrees=0.0 translate=0.0 scale=0.0 shear=0.0 perspective=0.0 flipud=0.0 fliplr=0.0 bgr=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
