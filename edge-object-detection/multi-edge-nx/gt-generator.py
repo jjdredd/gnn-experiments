@@ -10,8 +10,6 @@ import yaml
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
-import pickle
-
 
 ImageSize = 400
 NumTrainSamples = 20000
@@ -48,10 +46,10 @@ class YoloDataGenerator():
         self.image_size = ImageSize
         self.edge_nums = EdgeNums
         self.node_nums = NodeNums
+        self.eps = 10**(-3)
 
-    @staticmethod
-    def PixelCompare(x, y):
-        return abs(x - y) < 1.0
+    def FuzzyCompare(self, x, y):
+        return abs(x - y) < self.eps
 
     @staticmethod
     def CalculateCenter(p_1, p_2):
@@ -69,17 +67,18 @@ class YoloDataGenerator():
         2. horizontal
         3. vertical
         """
-        if YoloDataGenerator.PixelCompare(p_1[1], p_2[1]):
+        if self.FuzzyCompare(p_1[1], p_2[1]):
             return 2
-        elif YoloDataGenerator.PixelCompare(p_1[0], p_2[0]):
+        elif self.FuzzyCompare(p_1[0], p_2[0]):
             return 3
         elif (p_2[0] - p_1[0]) * (p_2[1] - p_1[1]) > 0:
             return 0
         else:
             return 1
 
-    def NormalizeCoordinates(self, p):
-        return (p[0] / self.image_size, p[1] / self.image_size)
+    @staticmethod
+    def ToYoloCoordinates(p):
+        return [p[0], 1 - p[1]]
 
     def GeneratePlanarGraph(self, nodes, edges):
         G = nx.barabasi_albert_graph(nodes, edges)
@@ -99,12 +98,17 @@ class YoloDataGenerator():
 
     def RenderGraph(self, graph, pos, file_path):
         plt.figure(figsize=(1, 1), dpi=self.image_size)
-        plt.box(False)
         nx.draw_networkx_edges(graph, pos=pos,
                                # with_labels=False, node_color='lightblue', font_weight='bold',
                                node_size=0,
                                width=EdgeThickness,
                                edge_color='black')
+        plt.box(False)
+        fig = plt.gcf()
+        fig.subplots_adjust(left=0.0, right=1.0, top=1.0, bottom=0.0)
+        ax = plt.gca()
+        ax.set_xlim([0, 1])
+        ax.set_ylim([0, 1])
         plt.savefig(file_path)
         plt.clf()
         plt.close('all')
@@ -114,13 +118,15 @@ class YoloDataGenerator():
         for edge in graph.edges:
             start_point = pos[edge[0]]
             end_point = pos[edge[1]]
+            image_start_point = YoloDataGenerator.ToYoloCoordinates(start_point)
+            image_end_point = YoloDataGenerator.ToYoloCoordinates(end_point)
             # the edge coordinates are suposed to be in range [0; 1]
             # according to the way 'pos' was calculated in self.GenerateSample()
             edge_class = self.ClassifyEdge(start_point, end_point)
-            edge_center = YoloDataGenerator.CalculateCenter(start_point,
-                                                            end_point)
-            edge_bb = YoloDataGenerator.EdgeBoungdingBox(start_point, 
-                                                         end_point)
+            edge_center = YoloDataGenerator.CalculateCenter(image_start_point,
+                                                            image_end_point)
+            edge_bb = YoloDataGenerator.EdgeBoungdingBox(image_start_point, 
+                                                         image_end_point)
             txt_file.write(f'{edge_class}\t{edge_center[0]}\t{edge_center[1]}')
             txt_file.write(f'\t{edge_bb[0]}\t{edge_bb[1]}\n')
 

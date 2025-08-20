@@ -1,8 +1,9 @@
 * Edge detection as object detection experiment
  This is an experiment to detect graph edges using an object detector.
+ This passed the test with a single line
 ** Start with a yolo11 model (no pretraining)
 may try v 8 but 9 or 10 are not recommended, yolo11n is smaller
-** Make 3 classes of edges:
+** Make 4 classes of edges:
 *** slanted like y=x
 *** slanted like y=-x
 *** vertical
@@ -21,3 +22,10 @@ a vector from edge center to edge vertex
 ** Raster-to-Vector: Revisiting Floorplan Transformation
 *** http://art-programmer.github.io/floorplan-transformation/paper.pdf
 *** https://github.com/art-programmer/FloorplanTransformation
+* More possibilities:
+** Use Oriented Bounding Box feature of Yolo, to detect full walls
+*** https://docs.ultralytics.com/datasets/obb/
+*** This may not work as well because it's too complex
+*** Paired with vertex detection, this can help calculate balance
+** Possibility to detect vertices as well
+
