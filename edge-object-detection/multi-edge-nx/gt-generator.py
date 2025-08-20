@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import random
 
 ImageSize = 400
-EdgeThickness = 1
+EdgeThickness = 0.5
 
 NodeNums = [8, 10]
 EdgeNums = [1, 5]
@@ -42,6 +42,7 @@ class YoloDataGenerator():
         self.edge_nums = EdgeNums
         self.node_nums = NodeNums
         self.eps = 10**(-3)
+        self.min_bbox = 0.01
 
     def FuzzyCompare(self, x, y):
         return abs(x - y) < self.eps
@@ -55,8 +56,8 @@ class YoloDataGenerator():
         return [abs(p_2[0] - p_1[0]), abs(p_2[1] - p_1[1])]
 
     def EnsureNonZeroBoundingBox(self, bbox):
-        bbox[0] = max(bbox[0], 2 / self.image_size)
-        bbox[1] = max(bbox[1], 2 / self.image_size)
+        bbox[0] = max(bbox[0], self.min_bbox)
+        bbox[1] = max(bbox[1], self.min_bbox)
 
     def ClassifyEdge(self, p_1, p_2) -> int:
         """
@@ -127,6 +128,9 @@ class YoloDataGenerator():
             edge_bb = YoloDataGenerator.EdgeBoungdingBox(image_start_point,
                                                          image_end_point)
             # trick to prevent zero area bounding boxes
+            # Make sure that horizontal and vertical bounding boxes are large enough
+            # The exact corners are less important in this case because we don't use
+            # corners for edge endpoints for horizontal/vertical edges
             self.EnsureNonZeroBoundingBox(edge_bb)
             txt_file.write(f'{edge_class}\t{edge_center[0]}\t{edge_center[1]}')
             txt_file.write(f'\t{edge_bb[0]}\t{edge_bb[1]}\n')
@@ -175,3 +179,7 @@ if __name__ == '__main__':
 # this training command is essential 
 # training command
 # yolo detect train data=./yolo-training-data/data.yaml model=yolo11s.pt augment=False epochs=16 pretrained=False hsv_h=0.0 hsv_s=0.0 hsv_v=0.0 degrees=0.0 translate=0.0 scale=0.0 shear=0.0 perspective=0.0 flipud=0.0 fliplr=0.0 bgr=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
+
+# we can not have any augmentation because
+# 1. only straight edges exist
+# 2. augmentation will change and mess up the edge class since the edge class is tied to geometry.
