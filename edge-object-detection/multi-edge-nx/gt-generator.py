@@ -11,7 +11,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import random
 
-ImageSize = 400
+ImageSize = 416
 EdgeThickness = 0.5
 
 NodeNums = [8, 10]
