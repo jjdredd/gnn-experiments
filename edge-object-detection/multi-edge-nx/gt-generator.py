@@ -12,10 +12,7 @@ import matplotlib.pyplot as plt
 import random
 
 ImageSize = 400
-NumTrainSamples = 20000
-NumValSamples = 500
-
-EdgeThickness = 0.5
+EdgeThickness = 1
 
 NodeNums = [8, 10]
 EdgeNums = [1, 5]
@@ -36,13 +33,11 @@ def EnsureDirectoryExists(directory_path):
 class YoloDataGenerator():
     def __init__(self,
                  output_directory: str,
-                 training_samples=80000,
-                 validation_samples=1000,
-                 min_line_dim=5):
+                 training_samples=20000,
+                 validation_samples=500):
         self.output_directory = output_directory
         self.training_samples = training_samples
         self.validation_samples = validation_samples
-        self.min_line_dim = min_line_dim
         self.image_size = ImageSize
         self.edge_nums = EdgeNums
         self.node_nums = NodeNums
@@ -53,11 +48,15 @@ class YoloDataGenerator():
 
     @staticmethod
     def CalculateCenter(p_1, p_2):
-        return ((p_1[0] + p_2[0]) / 2.0, (p_1[1] + p_2[1]) / 2.0)
+        return [(p_1[0] + p_2[0]) / 2.0, (p_1[1] + p_2[1]) / 2.0]
 
     @staticmethod
     def EdgeBoungdingBox(p_1, p_2):
-        return (abs(p_2[0] - p_1[0]), abs(p_2[1] - p_1[1]))
+        return [abs(p_2[0] - p_1[0]), abs(p_2[1] - p_1[1])]
+
+    def EnsureNonZeroBoundingBox(self, bbox):
+        bbox[0] = max(bbox[0], 2 / self.image_size)
+        bbox[1] = max(bbox[1], 2 / self.image_size)
 
     def ClassifyEdge(self, p_1, p_2) -> int:
         """
@@ -125,8 +124,10 @@ class YoloDataGenerator():
             edge_class = self.ClassifyEdge(start_point, end_point)
             edge_center = YoloDataGenerator.CalculateCenter(image_start_point,
                                                             image_end_point)
-            edge_bb = YoloDataGenerator.EdgeBoungdingBox(image_start_point, 
+            edge_bb = YoloDataGenerator.EdgeBoungdingBox(image_start_point,
                                                          image_end_point)
+            # trick to prevent zero area bounding boxes
+            self.EnsureNonZeroBoundingBox(edge_bb)
             txt_file.write(f'{edge_class}\t{edge_center[0]}\t{edge_center[1]}')
             txt_file.write(f'\t{edge_bb[0]}\t{edge_bb[1]}\n')
 
@@ -145,10 +146,10 @@ class YoloDataGenerator():
     def GenerateDataSets(self):
         EnsureDirectoryExists(self.output_directory)
         # generate the training data set
-        for n in range(NumTrainSamples):
+        for n in range(self.training_samples):
             self.GenerateSample(f'graph_{n}', self.output_directory, True)
         # generate the 
-        for n in range(NumValSamples):
+        for n in range(self.validation_samples):
             self.GenerateSample(f'graph_{n}', self.output_directory, False)
 
         data_dict = {'train': 'images/train',
@@ -166,7 +167,7 @@ if __name__ == '__main__':
         print('Destination directory required')
         exit(-1)
 
-    ydg = YoloDataGenerator(sys.argv[1])
+    ydg = YoloDataGenerator(sys.argv[1], 20000, 500)
     ydg.GenerateDataSets()
     print('Done!')
 
