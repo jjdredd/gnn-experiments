@@ -42,7 +42,7 @@ class YoloDataGenerator():
         self.edge_nums = EdgeNums
         self.node_nums = NodeNums
         self.eps = 10**(-3)
-        self.min_bbox = 0.01
+        self.min_bbox = 0.05
 
     def FuzzyCompare(self, x, y):
         return abs(x - y) < self.eps
@@ -178,7 +178,11 @@ if __name__ == '__main__':
 
 # this training command is essential 
 # training command
-# yolo detect train data=./yolo-training-data/data.yaml model=yolo11s.pt augment=False epochs=16 pretrained=False hsv_h=0.0 hsv_s=0.0 hsv_v=0.0 degrees=0.0 translate=0.0 scale=0.0 shear=0.0 perspective=0.0 flipud=0.0 fliplr=0.0 bgr=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
+# yolo detect train data=./yolo-training-data/data.yaml model=yolo11m.pt imgsz=416 augment=False epochs=16 pretrained=False hsv_h=0.0 hsv_s=0.0 hsv_v=0.0 degrees=0.0 translate=0.0 scale=0.0 shear=0.0 perspective=0.0 flipud=0.0 fliplr=0.0 bgr=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
+#
+# we can set hsv_h, hsv_s, hsv_v since they just modify colors
+#
+# yolo detect train data=./yolo-dataset-416/data.yaml model=yolo11m.pt imgsz=416 augment=False epochs=16 pretrained=False hsv_h=0.015 hsv_s=0.7 hsv_v=0.4 degrees=0.0 translate=0.0 scale=0.0 shear=0.0 perspective=0.0 flipud=0.0 fliplr=0.0 bgr=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
 
 # we can not have any augmentation because
 # 1. only straight edges exist
