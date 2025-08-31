@@ -1,0 +1,12 @@
+* OBB detection for edges and vertices
+** Motivation
+If we can detect walls and vertices with oriented bounding box, we can
+get balance (potentially) and wall width.
+** yolo oriented bounding boxes
+*** [[https://docs.ultralytics.com/tasks/obb/][Oriented Bounding Boxes Object Detection]]
+*** [[https://docs.ultralytics.com/datasets/obb/][Oriented Bounding Box (OBB) Datasets Overview]]
+** Other modifications/considerations:
+*** New graph generation algorithm
+The old graph generation based on networkx generator functions and embeddings
+does not give a good graph, especially for variable wall width
+we use the voronoi polygon/graph generation using shapely
