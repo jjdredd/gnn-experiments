@@ -31,9 +31,11 @@ def EnsureDirectoryExists(directory_path):
 
 
 class VoronoiGraphGenerator():
-    def __init__(self, num_pts: int, min_edge_size: float):
+    def __init__(self, num_pts: int, min_edge_size: float,
+                 decimate: int):
         self.min_edge_size = min_edge_size
         self.num_pts = num_pts
+        self.decimate = decimate
         self.margin = 0.1
         self.tolerance = 10**(-2)
         self.envelope = shp.Polygon(((0., 0.),
@@ -44,15 +46,40 @@ class VoronoiGraphGenerator():
         self.graph_vertices = []
         self.graph_edges = [[], []]
 
-    def getGraphVertexIndex(v):
-        for 
+    def getGraphVertexIndex(self, v):
+        for n, vertex in enumerate(self.graph_vertices):
+            if np.allclose(vertex, v):
+                return n
+        return None
 
-    def addGraphVertex(v):
+    def addGraphVertex(self, v):
         index = self.getGraphVertexIndex(v)
         if index is not None:
             return index
         self.graph_vertices.append(v)
         return len(self.graph_vertices) - 1
+
+    def addGraphEdge(self, edge):
+        index_1 = self.addGraphVertex(edge.coords[0])
+        index_2 = self.addGraphVertex(edge.coords[1])
+        # forward
+        self.graph_edges[0].append(index_1)
+        self.graph_edges[1].append(index_2)
+        # backward
+        self.graph_edges[1].append(index_1)
+        self.graph_edges[0].append(index_2)
+
+    def filterShortEdges(self, edges):
+        return [line for line in edges
+                if line.length >= self.min_edge_size]
+
+    def decimateEdges(self, edges):
+        return [line for line in edges
+                if np.random.randint(self.decimate) != 0]
+
+    def linesToGraph(self, edges):
+        for edge in edges:
+            self.addGraphEdge(edge)
 
     def generateRandomPoints(self):
         points_list = np.random.uniform(self.margin, 1.0 - self.margin,
@@ -65,14 +92,28 @@ class VoronoiGraphGenerator():
                                                extend_to=self.envelope,
                                                only_edges=True,
                                                ordered=False)
-        for line in voronoi_diagram.geoms:
-            if line.length < self.min_edge_size:
-                continue
-            line.coords
+        edges = self.filterShortEdges(voronoi_diagram.geoms)
+        edges = self.decimateEdges(edges)
+        self.linesToGraph(edges)
 
+
+class GraphRenderer():
+    def __init__(self, image_size: int):
+        self.image_size = image_size
+
+    def RenderGraph(self):
+        pass
+
+    def AnnotateGraph(self):
+        pass
+
+    def RenderAnnotation(self, image):
+        pass
 
 
 if __name__ == '__main__':
-    generator = VoronoiGraphGenerator(10, 0.1)
+    generator = VoronoiGraphGenerator(10, 0.02, 20)
     generator.generateVoronoiDiagram()
+    print(generator.graph_vertices)
+    print(generator.graph_edges)
     print('Done!')
