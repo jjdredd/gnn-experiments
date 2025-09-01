@@ -38,6 +38,8 @@ class VoronoiGraphGenerator():
         self.decimate = decimate
         self.margin = 0.1
         self.tolerance = 10**(-2)
+        self.width_range = [0.005, 0.05]
+        self.balance_range = [0.1, 0.9]
         self.envelope = shp.Polygon(((0., 0.),
                                      (0., 1.),
                                      (1., 1.),
@@ -45,6 +47,8 @@ class VoronoiGraphGenerator():
                                      (0., 0.)))
         self.graph_vertices = []
         self.graph_edges = [[], []]
+        self.edge_width = []
+        self.edge_balance = []
 
     def getGraphVertexIndex(self, v):
         for n, vertex in enumerate(self.graph_vertices):
@@ -62,12 +66,18 @@ class VoronoiGraphGenerator():
     def addGraphEdge(self, edge):
         index_1 = self.addGraphVertex(edge.coords[0])
         index_2 = self.addGraphVertex(edge.coords[1])
+        width = np.random.uniform(self.width_range[0], self.width_range[1])
+        balance = np.random.uniform(self.balance_range[0], self.balance_range[1])
         # forward
         self.graph_edges[0].append(index_1)
         self.graph_edges[1].append(index_2)
+        self.edge_width.append(width)
+        self.edge_balance.append(balance)
         # backward
         self.graph_edges[1].append(index_1)
         self.graph_edges[0].append(index_2)
+        self.edge_width.append(width)
+        self.edge_balance.append(1 - balance)
 
     def filterShortEdges(self, edges):
         return [line for line in edges
@@ -92,7 +102,8 @@ class VoronoiGraphGenerator():
                                                extend_to=self.envelope,
                                                only_edges=True,
                                                ordered=False)
-        edges = self.filterShortEdges(voronoi_diagram.geoms)
+        edges = shp.intersection(voronoi_diagram.geoms, self.envelope)
+        edges = self.filterShortEdges(edges)
         edges = self.decimateEdges(edges)
         self.linesToGraph(edges)
 
@@ -100,14 +111,19 @@ class VoronoiGraphGenerator():
 class GraphRenderer():
     def __init__(self, image_size: int):
         self.image_size = image_size
+        self.margin_ratio = 0.1
+        self.interior_image_size = (1 - 2 * self.margin_ratio) * self.image_size
 
-    def RenderGraph(self):
+    def relativeToFullImageCoord(self, p):
+        res = []
+
+    def RenderGraph(self, graph: VoronoiGraphGenerator):
         pass
 
-    def AnnotateGraph(self):
+    def AnnotateGraph(self, graph: VoronoiGraphGenerator):
         pass
 
-    def RenderAnnotation(self, image):
+    def RenderAnnotation(self, image, annotation):
         pass
 
 
@@ -116,4 +132,6 @@ if __name__ == '__main__':
     generator.generateVoronoiDiagram()
     print(generator.graph_vertices)
     print(generator.graph_edges)
+    print(generator.edge_width)
+    print(generator.edge_balance)
     print('Done!')
