@@ -101,7 +101,7 @@ class YoloDataGenerator():
         # need to normalize coordinates
         txt_file.write(f'{edge_class}\t{edge_center[0]}\t{edge_center[1]}\t{edge_bb[0]}\t{edge_bb[1]}\n')
 
-        image = np.zeros((self.image_size, self.image_size, 3), dtype=np.uint8)  # Example: black image
+        image = np.zeros((self.image_size, self.image_size, 3), dtype=np.uint8)
         # Define line color (BGR format)
         color = (255, 255, 255)
         # Define line thickness
