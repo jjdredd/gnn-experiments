@@ -164,7 +164,7 @@ class GraphRenderer():
         return [p_1, p_2, p_3, p_4]
 
     def RenderGraph(self, image_path, graph: VoronoiGraphGenerator):
-        render_vert = True
+        render_vert = False
         written_edges = set()
         image = np.zeros((self.image_size, self.image_size, 3), dtype=np.uint8)
         color = (255, 255, 255)
