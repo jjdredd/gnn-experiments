@@ -49,10 +49,7 @@ class VoronoiGraphGenerator():
                                      (1., 1.),
                                      (1., 0.),
                                      (0., 0.)))
-        self.graph_vertices = []
-        self.graph_edges = [[], []]
-        self.edge_width = []
-        self.edge_balance = []
+        self.Clear()
 
     def getGraphVertexIndex(self, v):
         for n, vertex in enumerate(self.graph_vertices):
@@ -110,6 +107,12 @@ class VoronoiGraphGenerator():
         edges = self.filterShortEdges(edges)
         edges = self.decimateEdges(edges)
         self.linesToGraph(edges)
+
+    def Clear(self):
+        self.graph_vertices = []
+        self.graph_edges = [[], []]
+        self.edge_width = []
+        self.edge_balance = []
 
 
 class GraphRenderer():
@@ -206,30 +209,70 @@ class GraphRenderer():
             if edge_index_tuple in written_edges:
                 continue
             written_edges.add(edge_index_tuple)
+            edge_index_tuple_r = (edge_index[1], edge_index[0])
+            written_edges.add(edge_index_tuple_r)
             edge = [graph.graph_vertices[edge_index[0]],
                     graph.graph_vertices[edge_index[1]]]
             polygon = self.edgePolygon(edge, graph.edge_width[n],
                                        graph.edge_balance[n])
-            txt_file.write((f'0\t{polygon[0][0]}\t{polygon[0][1]}'
-                            f'\t{polygon[1][0]}\t{polygon[1][1]}'
-                            f'\t{polygon[2][0]}\t{polygon[2][1]}'
-                            f'\t{polygon[3][0]}\t{polygon[3][1]}\n'))
+            poly_img = [self.relativeToFullImageCoord(v) / self.image_size for v in polygon]
+            txt_file.write((f'0\t{poly_img[0][0]}\t{poly_img[0][1]}'
+                            f'\t{poly_img[1][0]}\t{poly_img[1][1]}'
+                            f'\t{poly_img[2][0]}\t{poly_img[2][1]}'
+                            f'\t{poly_img[3][0]}\t{poly_img[3][1]}\n'))
 
         for vertex in graph.graph_vertices:
             polygon = self.vertexPolygon(vertex)
-            txt_file.write((f'1\t{polygon[0][0]}\t{polygon[0][1]}'
-                            f'\t{polygon[1][0]}\t{polygon[1][1]}'
-                            f'\t{polygon[2][0]}\t{polygon[2][1]}'
-                            f'\t{polygon[3][0]}\t{polygon[3][1]}\n'))
+            poly_img = [self.relativeToFullImageCoord(v) / self.image_size for v in polygon]
+            txt_file.write((f'1\t{poly_img[0][0]}\t{poly_img[0][1]}'
+                            f'\t{poly_img[1][0]}\t{poly_img[1][1]}'
+                            f'\t{poly_img[2][0]}\t{poly_img[2][1]}'
+                            f'\t{poly_img[3][0]}\t{poly_img[3][1]}\n'))
 
     def RenderAnnotation(self, image, annotation):
         pass
 
 
+def GenerateDataset(output_directory, num_samples, training):
+    subdirectory = 'train' if training else 'val'
+    labels_path = f'{output_directory}/labels/{subdirectory}'
+    images_path = f'{output_directory}/images/{subdirectory}'
+    EnsureDirectoryExists(output_directory)
+    EnsureDirectoryExists(labels_path)
+    EnsureDirectoryExists(images_path)
+    generator = VoronoiGraphGenerator(16, 0.06, 8)
+    renderer = GraphRenderer(ImageSize)
+    for n in range(num_samples):
+        image_file = f'{images_path}/graph_{n}.png'
+        annotation_file = f'{labels_path}/graph_{n}.txt'
+        generator.generateVoronoiDiagram()
+        renderer.RenderGraph(image_file, generator)
+        renderer.AnnotateGraph(annotation_file, generator)
+        generator.Clear()
+
+
+def GenerateYaml(output_directory):
+    data_dict = {'train': 'images/train',
+                 'val': 'images/val',
+                 'names': {
+                     0: 'edge',
+                     1: 'vertex'}}
+    with open(f'{output_directory}/data.yaml', 'w+') as yaml_config_file:
+        yaml.dump(data_dict, yaml_config_file)
+
+
 if __name__ == '__main__':
-    generator = VoronoiGraphGenerator(14, 0.06, 10)
-    generator.generateVoronoiDiagram()
-    renderer = GraphRenderer(416)
-    renderer.RenderGraph('./image.png', generator)
-    renderer.AnnotateGraph('./annotation.txt', generator)
+    if len(sys.argv) < 2:
+        print('Destination directory required')
+        exit(-1)
+
+    output_directory = sys.argv[1]
+    print('Generating the training dataset')
+    GenerateDataset(output_directory, 30000, True)
+    print('Generating the validation dataset')
+    GenerateDataset(output_directory, 1000, False)
+    GenerateYaml(output_directory)
     print('Done!')
+
+
+# yolo detect train data=./yolo-dataset-416/data.yaml model=yolo11m-obb.yaml imgsz=416 augment=False epochs=16 pretrained=False hsv_h=0.015 hsv_s=0.7 hsv_v=0.4 degrees=0.0 translate=0.0 scale=0.0 shear=0.0 perspective=0.0 flipud=0.0 fliplr=0.0 bgr=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
