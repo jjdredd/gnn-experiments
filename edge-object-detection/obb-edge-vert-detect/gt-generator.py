@@ -98,11 +98,18 @@ class VoronoiGraphGenerator():
         return shp.MultiPoint(points_list)
 
     def generateVoronoiDiagram(self):
-        voronoi_diagram = shp.voronoi_polygons(self.generateRandomPoints(),
-                                               tolerance=self.tolerance,
-                                               extend_to=self.envelope,
-                                               only_edges=True,
-                                               ordered=False)
+        voronoi_diagram = None
+        while voronoi_diagram is None:
+            try:
+                voronoi_diagram = shp.voronoi_polygons(self.generateRandomPoints(),
+                                                       tolerance=self.tolerance,
+                                                       extend_to=self.envelope,
+                                                       only_edges=True,
+                                                       ordered=False)
+            except:
+                print('Skipping invalid geometry')
+                voronoi_diagram = None
+
         edges = shp.intersection(voronoi_diagram.geoms, self.envelope)
         edges = self.filterShortEdges(edges)
         edges = self.decimateEdges(edges)
