@@ -275,11 +275,11 @@ if __name__ == '__main__':
 
     output_directory = sys.argv[1]
     print('Generating the training dataset')
-    GenerateDataset(output_directory, 30000, True)
+    GenerateDataset(output_directory, 4000, True)
     print('Generating the validation dataset')
-    GenerateDataset(output_directory, 1000, False)
+    GenerateDataset(output_directory, 400, False)
     GenerateYaml(output_directory)
     print('Done!')
 
 
-# yolo detect train data=./yolo-dataset-416/data.yaml model=yolo11m-obb.yaml imgsz=416 augment=False epochs=16 pretrained=False hsv_h=0.015 hsv_s=0.7 hsv_v=0.4 degrees=0.0 translate=0.0 scale=0.0 shear=0.0 perspective=0.0 flipud=0.0 fliplr=0.0 bgr=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
+# yolo obb train data=./yolo-dataset-416/data.yaml model=yolo11m-obb.yaml imgsz=416 augment=False epochs=16 pretrained=False hsv_h=0.015 hsv_s=0.7 hsv_v=0.4 degrees=0.0 translate=0.0 scale=0.0 shear=0.0 perspective=0.0 flipud=0.0 fliplr=0.0 bgr=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
