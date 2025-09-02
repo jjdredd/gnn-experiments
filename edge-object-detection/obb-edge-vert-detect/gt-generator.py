@@ -184,7 +184,9 @@ class GraphRenderer():
             cv2.fillConvexPoly(image, poly_img, color)
 
         if not render_vert:
+            cv2.imwrite(image_path, image)
             return
+
         color = (0, 0, 255)
         for v in graph.graph_vertices:
             polygon = self.vertexPolygon(v)
