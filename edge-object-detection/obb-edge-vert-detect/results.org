@@ -1,0 +1,24 @@
+* Best Oriented Bounding Box (OBB) resutls so far:
+** Dark blue box - OBB for wall (graph edge)
+** Light blue box - OBB for vertex
+** Result pics
+[[file:./results/graph_10.jpg]]
+[[file:./results/graph_11.jpg]]
+[[file:./results/graph_12.jpg]]
+[[file:./results/graph_13.jpg]]
+[[file:./results/graph_14.jpg]]
+[[file:./results/graph_15.jpg]]
+[[file:./results/graph_16.jpg]]
+[[file:./results/graph_17.jpg]]
+[[file:./results/graph_18.jpg]]
+[[file:./results/graph_19.jpg]]
+[[file:./results/graph_1.jpg]]
+[[file:./results/graph_20.jpg]]
+[[file:./results/graph_2.jpg]]
+[[file:./results/graph_3.jpg]]
+[[file:./results/graph_4.jpg]]
+[[file:./results/graph_5.jpg]]
+[[file:./results/graph_6.jpg]]
+[[file:./results/graph_7.jpg]]
+[[file:./results/graph_8.jpg]]
+[[file:./results/graph_9.jpg]]
