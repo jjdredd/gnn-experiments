@@ -42,7 +42,7 @@ class VoronoiGraphGenerator():
         self.decimate = decimate
         self.margin = 0.1
         self.tolerance = 10**(-2)
-        self.width_range = [0.01, 0.05]
+        self.width_range = [0.02, 0.05]
         self.balance_range = [0.2, 0.8]
         self.envelope = shp.Polygon(((0., 0.),
                                      (0., 1.),
@@ -283,3 +283,6 @@ if __name__ == '__main__':
 
 
 # yolo obb train data=./yolo-dataset-416/data.yaml model=yolo11m-obb.yaml imgsz=416 augment=False epochs=16 pretrained=False hsv_h=0.015 hsv_s=0.7 hsv_v=0.4 degrees=0.0 translate=0.0 scale=0.0 shear=0.0 perspective=0.0 flipud=0.0 fliplr=0.0 bgr=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
+
+# more liberal with augmentation
+# yolo obb train data=./yolo-obb-416/data.yaml model=yolo11m-obb.yaml imgsz=416  epochs=16 pretrained=False scale=0.0 perspective=0.0 degrees=45.0 flipud=0.3 fliplr=0.3 shear=0.0 mosaic=0.0 mixup=0.0 cutmix=0.0 copy_paste=0.0 erasing=0.0
